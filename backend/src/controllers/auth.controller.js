@@ -10,10 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'supersecret_jwt_key_prototype';
 
 const register = async (req, res) => {
   try {
-    const { email, password, name, role } = req.body || {};
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required. Ensure your request has a JSON body.' });
-    }
+    const { email, password, name, role } = req.body;
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -43,10 +40,7 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body || {};
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required. Ensure your request has a JSON body.' });
-    }
+    const { email, password } = req.body;
 
     // Find user
     const user = await prisma.user.findUnique({ where: { email } });
