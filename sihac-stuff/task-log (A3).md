@@ -55,3 +55,4 @@ We reviewed an educational demonstration page (`views/profile.ejs`) to observe h
 
 ### References
 - [What is EJS and why do I need it? (GeeksforGeeks)](https://www.geeksforgeeks.org/javascript/what-is-ejs-and-why-do-i-need-it/)
+- [Zod Documentation](https://zod.dev/)

@@ -42,14 +42,14 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/roles', roleRoutes);
 
-// Demonstration Route for EJS Output Encoding (XSS Protection)
+// Demonstration Test Route for EJS Output Encoding (XSS Protection)
 app.get('/profile', (req, res) => {
-  // Simulating user data retrieved from a database that contains a malicious payload
+  // Simulating user mock data that contains a malicious payload
   const userData = {
     username: 'HackerMan',
     bio: '<script>alert("XSS Attack Successful!");</script><img src="x" onerror="alert(\'Image XSS!\')">'
   };
-  
+
   // Render the EJS template and pass the data
   res.render('profile', { user: userData });
 });
