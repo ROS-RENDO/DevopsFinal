@@ -67,9 +67,17 @@ const login = async (req, res) => {
       { expiresIn: '1d' }
     );
 
+    // Set secure cookie
+    res.cookie('token', token, {
+      httpOnly: true, // Prevents XSS attacks
+      secure: process.env.NODE_ENV === 'production', // Requires HTTPS in production
+      sameSite: 'strict', // Prevents CSRF attacks
+      maxAge: 24 * 60 * 60 * 1000 // 1 day expiration
+    });
+
     res.status(200).json({
       message: 'Login successful',
-      token,
+      token, // Also return in body for backwards compatibility with frontends that expect it
       user: {
         id: user.id,
         email: user.email,
@@ -84,7 +92,8 @@ const login = async (req, res) => {
 };
 
 const logout = async (req, res) => {
-  // In a prototype, logout is usually handled client-side by dropping the token.
+  // Clear the cookie for secure session termination
+  res.clearCookie('token');
   res.status(200).json({ message: 'Logged out successfully' });
 };
 

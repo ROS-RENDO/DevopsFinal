@@ -1,10 +1,11 @@
 const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {
-  const token = req.headers['authorization'];
+  // Check cookies first, fallback to Authorization header
+  const token = req.cookies?.token || req.headers['authorization'];
   if (!token) return res.status(403).json({ error: 'No token provided' });
 
-  const bearerToken = token.split(' ')[1] || token;
+  const bearerToken = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
 
   jwt.verify(bearerToken, process.env.JWT_SECRET || 'supersecret_jwt_key_prototype', (err, decoded) => {
     if (err) return res.status(401).json({ error: 'Unauthorized' });
