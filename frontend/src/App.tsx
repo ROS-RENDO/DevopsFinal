@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/public/LandingPage';
 import LoginPage from './pages/public/LoginPage';
 import RegisterPage from './pages/public/RegisterPage';
+import XSSDemo from './pages/public/XSSDemo';
 import CustomerHome from './pages/customer/CustomerHome';
 import CompanyDashboard from './pages/company/CompanyDashboard';
 import WorkerDashboard from './pages/worker/WorkerDashboard';
@@ -15,6 +16,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/xss-demo" element={<XSSDemo />} />
         
         {/* Customer Routes */}
         <Route path="/customer" element={<CustomerHome />} />

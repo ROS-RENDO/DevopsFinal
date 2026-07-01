@@ -44,7 +44,8 @@
         <h2>Safe Bio (Escaped)</h2>
         <p>This uses the <code>&lt;%= %&gt;</code> tags. EJS automatically converts special characters like
             <code>&lt;</code> and <code>&gt;</code> into HTML entities. The XSS payload is rendered harmlessly as plain
-            text.</p>
+            text.
+        </p>
 
         <!-- SAFE: Output is automatically encoded -->
         <p><strong>Bio:</strong>
@@ -58,7 +59,7 @@
             script would execute!</p>
 
         <!-- UNSAFE: If you uncomment the line below, the XSS attack will run! -->
-        <!-- <p><strong>Bio:</strong> <%- user.bio %></p> -->
+        <p><strong>Bio:</strong> <%- user.bio %></p>
     </div>
 </body>
 

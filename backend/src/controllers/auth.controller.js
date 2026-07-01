@@ -3,10 +3,11 @@ const { PrismaClient } = require('@prisma/client');
 const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
 
 const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL || 'file:./dev.db' });
 const prisma = new PrismaClient({ adapter });
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecret_jwt_key_prototype';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const register = async (req, res) => {
   try {
@@ -18,8 +19,9 @@ const register = async (req, res) => {
       return res.status(400).json({ error: 'User already exists' });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password with an explicit salt
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create user
     const user = await prisma.user.create({
@@ -55,6 +57,10 @@ const login = async (req, res) => {
     }
 
     // Generate JWT
+    if (!JWT_SECRET) {
+      return res.status(500).json({ error: 'JWT_SECRET is not configured' });
+    }
+
     const token = jwt.sign(
       { id: user.id, role: user.role },
       JWT_SECRET,
@@ -109,9 +115,18 @@ const me = async (req, res) => {
   }
 };
 
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // limit each IP to 5 requests per windowMs
+  message: { error: 'Too many login attempts, please try again after 15 minutes' }
+});
+
 module.exports = {
   register,
   login,
+  loginLimiter,
   logout,
   me
+
+  
 };

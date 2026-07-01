@@ -1,4 +1,6 @@
+require('dotenv').config();
 const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const verifyToken = (req, res, next) => {
   // Check cookies first, fallback to Authorization header
@@ -7,7 +9,11 @@ const verifyToken = (req, res, next) => {
 
   const bearerToken = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
 
-  jwt.verify(bearerToken, process.env.JWT_SECRET || 'supersecret_jwt_key_prototype', (err, decoded) => {
+  if (!JWT_SECRET) {
+    return res.status(500).json({ error: 'JWT_SECRET is not configured' });
+  }
+
+  jwt.verify(bearerToken, JWT_SECRET, (err, decoded) => {
     if (err) return res.status(401).json({ error: 'Unauthorized' });
     req.userId = decoded.id;
     req.userRole = decoded.role;
