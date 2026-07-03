@@ -16,7 +16,7 @@ const app = express();
 
 // Configure EJS View Engine
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, 'tests', 'xss-encoding'));
 
 app.use(cors());
 app.use(express.json());
