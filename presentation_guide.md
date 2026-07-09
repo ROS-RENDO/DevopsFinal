@@ -129,8 +129,9 @@ If you are presenting the CI Pipeline locally on your machine, follow these step
 ### 1. Build and Spin up Custom Jenkins
 To run the *real* CI pipeline, Jenkins needs Docker, Node.js, and SonarScanner installed. We created a custom `Jenkins.Dockerfile` for this!
 Run these commands in your terminal:
-1. `docker build -f Jenkins.Dockerfile -t devops-jenkins-custom .`
-2. `docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home -v //var/run/docker.sock:/var/run/docker.sock devops-jenkins-custom`
+1. `docker rm -f jenkins` (to delete the old mock one, if any)
+2. `docker build -f Jenkins.Dockerfile -t devops-jenkins-custom .`
+3. `docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home -v //var/run/docker.sock:/var/run/docker.sock devops-jenkins-custom`
 
 ### 2. Unlock Jenkins
 Run `docker logs jenkins` in the terminal. Look for the password block and copy the long string (e.g. `97f8ec467f464b9587704671fea4d92f`).
