@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Zap, Shield, CheckCircle } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export default function LoginPage() {
       const res = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
@@ -29,19 +31,44 @@ export default function LoginPage() {
         return;
       }
 
-      localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
       if (redirect === 'booking') {
         navigate('/');
       } else {
         switch (data.user.role) {
-          case 'customer': navigate('/customer'); break;
+          case 'customer': navigate('/'); break;
           case 'company': navigate('/company'); break;
           case 'worker': navigate('/worker'); break;
           case 'admin': navigate('/admin'); break;
-          default: navigate('/customer');
+          default: navigate('/');
         }
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ credential: credentialResponse.credential }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Google login failed');
+      const params = new URLSearchParams(location.search);
+      const redirect = params.get('redirect');
+      
+      if (data.requiresMfa) {
+        navigate('/mfa', { state: { tempToken: data.tempToken, email: data.email, redirect } });
+        return;
       }
     } catch (err: any) {
       setError(err.message);
@@ -79,12 +106,13 @@ export default function LoginPage() {
           )}
 
           {/* Social */}
-          <button type="button" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', width: '100%', padding: '13px', background: '#fff', border: '1.5px solid #e5e5e5', borderRadius: '12px', color: '#111', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer', transition: 'all 0.2s' }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#fafafa')}
-            onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-            Continue with GitHub
-          </button>
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError('Google Login Failed')}
+              useOneTap
+            />
+          </div>
 
           {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', margin: '1.5rem 0', gap: '12px' }}>

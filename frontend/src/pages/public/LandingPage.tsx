@@ -66,6 +66,7 @@ export default function LandingPage() {
   const [cart, setCart] = useState<CI[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [bk, setBk] = useState<string | null>(null);
+  const [cartNote, setCartNote] = useState('');
   const [hi, setHi] = useState(0);
   const [user, setUser] = useState<any>(null);
   const ht = useRef<ReturnType<typeof setInterval>>();
@@ -94,8 +95,8 @@ export default function LandingPage() {
   const total = cart.reduce((a, c) => a + c.$, 0);
 
   const checkout = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
       localStorage.setItem('pendingCart', JSON.stringify(cart));
       navigate('/login?redirect=booking');
       return;
@@ -106,7 +107,8 @@ export default function LandingPage() {
       for (const it of cart) {
         const r = await fetch('http://localhost:5000/api/bookings', { 
           method: 'POST', 
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', 
           body: JSON.stringify({ serviceId: it.id, serviceName: it.n, date: new Date().toISOString() }) 
         });
         if (!r.ok) throw new Error();
@@ -361,6 +363,23 @@ export default function LandingPage() {
         </div>
         {cart.length > 0 && (
           <div style={{ padding: '18px 24px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#555', marginBottom: '6px' }}>Special Instructions</label>
+              <input 
+                type="text" 
+                value={cartNote} 
+                onChange={e => setCartNote(e.target.value)} 
+                placeholder="E.g., Please ring the doorbell..."
+                style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '0.9rem' }}
+              />
+              {/* VULNERABLE XSS RENDER POINT */}
+              {cartNote && (
+                 <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#666', background: '#f5f5f5', padding: '8px', borderRadius: '6px' }}>
+                   <strong>Note Preview: </strong>
+                   <span dangerouslySetInnerHTML={{ __html: cartNote }} />
+                 </div>
+              )}
+            </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
               <span style={{ fontSize: '0.9rem', color: '#999' }}>Total ({cart.length})</span>
               <span style={{ fontSize: '1.15rem', fontWeight: 700 }}>${total}</span>

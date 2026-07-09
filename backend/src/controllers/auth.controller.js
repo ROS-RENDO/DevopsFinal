@@ -5,6 +5,9 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../utils/prisma');
 const logger = require('../utils/logger');
 const { sendMfaEmail } = require('../utils/mailer');
+const { OAuth2Client } = require('google-auth-library');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret_jwt_key_prototype';
 
@@ -201,7 +204,6 @@ const validateMfa = async (req, res) => {
 
     res.status(200).json({
       message: 'Authentication successful',
-      token: finalToken,
       user: {
         id: user.id,
         email: user.email,
@@ -215,9 +217,74 @@ const validateMfa = async (req, res) => {
   }
 };
 
+const googleLogin = async (req, res) => {
+  try {
+    const { credential, role } = req.body;
+    if (!credential) {
+      return res.status(400).json({ error: 'Google credential is required' });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    
+    if (!payload || !payload.email) {
+      return res.status(400).json({ error: 'Invalid Google token payload' });
+    }
+
+    const { sub: googleId, email, name } = payload;
+
+    // Check if user exists by email or googleId
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email },
+          { googleId }
+        ]
+      }
+    });
+
+    if (!user) {
+      // Create new user if not exists
+      user = await prisma.user.create({
+        data: {
+          email,
+          name,
+          googleId,
+          role: role || 'customer',
+          mfaEnabled: true,
+        }
+      });
+    } else if (!user.googleId) {
+      // Link Google ID if user exists but hasn't linked Google yet
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { googleId }
+      });
+    }
+
+    // Force MFA 
+    const tempToken = await sendVerificationEmail(user);
+
+    return res.status(200).json({
+      message: 'MFA required. Check your email.',
+      requiresMfa: true,
+      tempToken,
+      email: user.email
+    });
+
+  } catch (error) {
+    logger.error('Google login error', { error: error.message });
+    res.status(500).json({ error: 'Server error during Google login' });
+  }
+};
+
 module.exports = {
   register,
   login,
+  googleLogin,
   logout,
   me,
   generateMfa, // used to resend code

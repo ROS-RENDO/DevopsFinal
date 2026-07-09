@@ -51,23 +51,23 @@ export default function MFAPage() {
       const res = await fetch('http://localhost:5000/api/auth/mfa/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ tempToken: state.tempToken, token: fullCode }),
       });
       const data = await res.json();
       
       if (!res.ok) throw new Error(data.error || 'Verification failed');
       
-      // Store final token and user
-      localStorage.setItem('token', data.token);
+      // Store user info (JWT is now secure in httpOnly cookie)
       localStorage.setItem('user', JSON.stringify(data.user));
 
       // Redirect to correct dashboard based on role
       switch (data.user.role) {
-        case 'customer': navigate('/customer'); break;
+        case 'customer': navigate('/'); break;
         case 'company': navigate('/company'); break;
         case 'worker': navigate('/worker'); break;
         case 'admin': navigate('/admin'); break;
-        default: navigate('/customer');
+        default: navigate('/');
       }
     } catch (err: any) {
       setError(err.message);
@@ -81,6 +81,7 @@ export default function MFAPage() {
       const res = await fetch('http://localhost:5000/api/auth/mfa/resend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ tempToken: state.tempToken }),
       });
       const data = await res.json();

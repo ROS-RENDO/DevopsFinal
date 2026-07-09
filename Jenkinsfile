@@ -62,7 +62,7 @@ pipeline {
             steps {
                 echo 'Running Dynamic Application Security Testing against staging...'
                 // Practice implementation: Running OWASP ZAP baseline scan against the container
-                // sh "docker run -t owasp/zap2docker-stable zap-baseline.py -t https://staging-url.com"
+                // sh "docker run -t zaproxy/zap-stable zap-baseline.py -t https://staging-url.com"
                 echo 'OWASP ZAP scan completed.'
             }
         }

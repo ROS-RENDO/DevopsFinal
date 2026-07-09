@@ -35,18 +35,45 @@ const sendMfaEmail = async (to, code) => {
   if (!transporter) await initMailer();
   
   const info = await transporter.sendMail({
-    from: '"Servd Security" <security@servd.com>',
+    from: '"Servd App" <noreply@servd.com>',
     to,
     subject: "Your Servd Verification Code",
-    text: `Your 6-digit verification code is: ${code}. It expires in 10 minutes.`,
-    html: `<div style="font-family:sans-serif;padding:20px;max-width:500px;margin:0 auto;border:1px solid #e5e5e5;border-radius:12px;">
-            <h2 style="margin-top:0;">Your Verification Code</h2>
-            <p>Use the following 6-digit code to securely access your Servd account:</p>
-            <div style="font-size:32px;font-weight:bold;letter-spacing:4px;padding:20px;background:#f5f5f5;border-radius:8px;text-align:center;margin:24px 0;">
-              ${code}
+    text: `Welcome to Servd!\n\nYour 6-digit verification code is: ${code}\n\nIt expires in 10 minutes. If you did not request this, please ignore this email.`,
+    html: `
+      <div style="font-family: 'Inter', -apple-system, sans-serif; background-color: #f7f7f7; padding: 40px 20px;">
+        <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.04);">
+          
+          <div style="background: #111111; padding: 24px 32px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Servd</h1>
+          </div>
+          
+          <div style="padding: 40px 32px;">
+            <h2 style="margin: 0 0 16px; font-size: 20px; color: #111111; font-weight: 700;">Secure Login</h2>
+            <p style="margin: 0 0 24px; color: #555555; font-size: 15px; line-height: 1.6;">
+              Please use the verification code below to securely sign in to your Servd account.
+            </p>
+            
+            <div style="background: #f9f9f9; border: 1.5px dashed #cccccc; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
+              <span style="font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #111111;">
+                ${code}
+              </span>
             </div>
-            <p style="color:#777;font-size:14px;">This code expires in 10 minutes. If you did not request this, please ignore this email.</p>
-           </div>`,
+            
+            <p style="margin: 0; color: #888888; font-size: 13px; line-height: 1.5;">
+              This code will expire in <strong>10 minutes</strong>.<br/>
+              If you didn't request this code, you can safely ignore this email.
+            </p>
+          </div>
+          
+          <div style="background: #fafafa; padding: 20px 32px; text-align: center; border-top: 1px solid #eeeeee;">
+            <p style="margin: 0; color: #aaaaaa; font-size: 12px;">
+              © ${new Date().getFullYear()} Servd, Inc. All rights reserved.
+            </p>
+          </div>
+          
+        </div>
+      </div>
+    `,
   });
 
   console.log("Message sent: %s", info.messageId);
