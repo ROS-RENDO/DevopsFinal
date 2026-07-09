@@ -41,7 +41,8 @@
 * "As Speaker 2 mentioned, our security controls are robust. **But these controls are only as good as the pipeline that enforces them.** I will now walk through how we deliver this secure app using DevOps."
 
 **Slide 8: The CI/CD Pipeline (B1 & B2.2)**
-* "We enforce our security and quality through a **Jenkins** CI pipeline. Every time code is pushed, our `Jenkinsfile` runs our SonarQube scans, builds our application, and executes our automated **Postman/Newman** tests."
+* "We enforce our security and quality through a **Jenkins** CI pipeline. Every time code is pushed, our `Jenkinsfile` runs our SonarQube scans, builds our Docker application, and executes our automated **Postman/Newman** tests."
+* "To make this 100% operational in an isolated environment, we engineered a custom Jenkins Docker image (`Jenkins.Dockerfile`) that installs all these necessary build tools natively!"
 
 **Slide 9: Containerization (B2.4)**
 * "Once the Postman tests pass, the pipeline builds our Docker image. We wrote a multi-stage `Dockerfile`. We don't run as root—we run as a restricted `node` user (Least Privilege). The final image is then pushed to **Docker Hub**."
