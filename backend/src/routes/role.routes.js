@@ -11,6 +11,10 @@ router.post('/customer/booking', verifyToken, roleMiddleware(['customer', 'admin
 // Only companies (or admins) can do this
 router.post('/company/staff', verifyToken, roleMiddleware(['company', 'admin']), roleController.addStaff);
 
+// Company action: Add service
+// Only companies (or admins) can do this
+router.post('/company/service', verifyToken, roleMiddleware(['company', 'admin']), roleController.addService);
+
 // Worker action: Accept a booking request
 // Only workers (or admins) can do this
 router.post('/worker/booking/:id/accept', verifyToken, roleMiddleware(['worker', 'admin']), roleController.acceptBooking);

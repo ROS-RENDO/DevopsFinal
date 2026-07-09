@@ -1,0 +1,49 @@
+{
+  "summary": {
+    "title": "DevOps Final Backend",
+    "owner": "Team",
+    "description": "Threat model for the secure Node.js backend using SQLite and Prisma."
+  },
+  "detail": {
+    "contributors": [],
+    "diagrams": [
+      {
+        "title": "Authentication Flow",
+        "diagramType": "STRIDE",
+        "elements": [
+          {
+            "type": "process",
+            "name": "Auth Controller",
+            "hasOpenThreats": false,
+            "threats": [
+              {
+                "status": "Mitigated",
+                "severity": "High",
+                "title": "Credential Stuffing",
+                "type": "Spoofing",
+                "description": "Attacker tries multiple credentials.",
+                "mitigation": "Rate limiting and logging via Winston."
+              },
+              {
+                "status": "Mitigated",
+                "severity": "High",
+                "title": "SQL Injection",
+                "type": "Tampering",
+                "description": "Attacker sends malicious SQL.",
+                "mitigation": "Prisma ORM automatically parameterizes queries."
+              },
+              {
+                "status": "Mitigated",
+                "severity": "Medium",
+                "title": "XSS in Dashboard",
+                "type": "Information disclosure",
+                "description": "Attacker inputs script tags in name field.",
+                "mitigation": "Auto-escaping templates via EJS and Zod schema validation."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -24,8 +24,18 @@ const acceptBooking = (req, res) => {
   });
 };
 
+const addService = (req, res) => {
+  // Mock action for company adding a service
+  res.status(200).json({
+    status: 'SUCCESS',
+    message: 'Service added successfully (Mock)',
+    data: req.body
+  });
+};
+
 module.exports = {
   makeBookingRequest,
   addStaff,
-  acceptBooking
+  acceptBooking,
+  addService
 };

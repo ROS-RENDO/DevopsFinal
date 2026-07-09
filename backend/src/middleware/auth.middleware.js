@@ -1,24 +1,41 @@
 const jwt = require('jsonwebtoken');
+const logger = require('../utils/logger');
 
 const verifyToken = (req, res, next) => {
-  // Check cookies first, fallback to Authorization header
-  const token = req.cookies?.token || req.headers['authorization'];
-  if (!token) return res.status(403).json({ error: 'No token provided' });
+  // Check for token in cookies first, then fallback to Authorization header
+  let token = req.cookies?.token;
+  
+  if (!token && req.headers.authorization?.startsWith('Bearer ')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
 
-  const bearerToken = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
+  if (!token) {
+    logger.warn('Authentication Failure: No token provided', { ip: req.ip, path: req.originalUrl });
+    return res.status(403).json({ error: 'No token provided' });
+  }
 
-  jwt.verify(bearerToken, process.env.JWT_SECRET || 'supersecret_jwt_key_prototype', (err, decoded) => {
-    if (err) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
     req.userId = decoded.id;
     req.userRole = decoded.role;
     next();
-  });
+  } catch (error) {
+    logger.warn('Authentication Failure: Invalid or expired token', { ip: req.ip, path: req.originalUrl });
+    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+  }
 };
 
-const roleMiddleware = (roles) => {
+const roleMiddleware = (allowedRoles) => {
   return (req, res, next) => {
-    if (!req.userRole || !roles.includes(req.userRole)) {
-      return res.status(403).json({ error: 'Require correct role' });
+    if (!req.userRole || !allowedRoles.includes(req.userRole)) {
+      logger.warn('Authorization Failure: Access denied', {
+        userId: req.userId,
+        attemptedRole: req.userRole,
+        requiredRoles: allowedRoles,
+        path: req.originalUrl,
+        ip: req.ip
+      });
+      return res.status(403).json({ error: `Access denied. Require one of: ${allowedRoles.join(', ')}` });
     }
     next();
   };

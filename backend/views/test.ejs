@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>XSS Defense Test</title>
+</head>
+<body>
+    <h1>Profile Page</h1>
+    <p>Welcome, <%= name %></p>
+    <!-- By using <%= %> in EJS, any script tags in the 'name' variable will be safely escaped into text! -->
+    
+    <!-- If we used <%- %> it would be vulnerable, but we strictly use <%= %> for user input -->
+</body>
+</html>
