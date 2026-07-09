@@ -1,0 +1,39 @@
+services:
+  db:
+    image: mariadb:10.11
+    env_file: ./backend/.env
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    expose:
+      - "3000"
+    env_file: ./backend/.env
+    depends_on:
+      db:
+        condition: service_healthy
+    # Run prisma db push automatically on startup to ensure tables exist
+    command: sh -c "npx prisma db push && npm start"
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
