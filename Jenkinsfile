@@ -19,8 +19,8 @@ pipeline {
         stage('SAST - SonarQube Analysis') {
             steps {
                 echo 'Running SonarQube Scanner...'
-                // Practice implementation: Assuming SonarQube Scanner is installed on Jenkins agent
-                sh 'sonar-scanner -Dsonar.projectKey=${SONAR_PROJECT_KEY} -Dsonar.sources=./backend/src'
+                // Run SonarScanner via Docker container
+                sh 'docker run --rm -v $(pwd):/usr/src sonarsource/sonar-scanner-cli -Dsonar.projectKey=${SONAR_PROJECT_KEY} -Dsonar.sources=./backend/src -Dsonar.host.url=http://host.docker.internal:9000'
                 echo 'SonarQube scan completed. Findings pushed to SonarQube Dashboard.'
             }
         }
@@ -39,8 +39,8 @@ pipeline {
                 echo 'Starting Temporary Container for Newman Tests...'
                 sh "docker run -d --name temp-backend -p 5000:5000 ${DOCKER_IMAGE}:latest"
                 
-                echo 'Running Postman tests via Newman...'
-                sh "npx newman run ../tests/postman_collection.json -k"
+                echo 'Running Postman tests via Newman Docker container...'
+                sh "docker run --rm -v \$(pwd)/tests:/etc/newman postman/newman run /etc/newman/postman_collection.json -k"
                 
                 echo 'Cleaning up Temporary Container...'
                 sh "docker rm -f temp-backend"
