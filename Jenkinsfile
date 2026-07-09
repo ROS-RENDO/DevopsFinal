@@ -20,7 +20,7 @@ pipeline {
             steps {
                 echo 'Running SonarQube Scanner...'
                 // Practice implementation: Assuming SonarQube Scanner is installed on Jenkins agent
-                // sh 'sonar-scanner -Dsonar.projectKey=${SONAR_PROJECT_KEY} -Dsonar.sources=./backend/src'
+                sh 'sonar-scanner -Dsonar.projectKey=${SONAR_PROJECT_KEY} -Dsonar.sources=./backend/src'
                 echo 'SonarQube scan completed. Findings pushed to SonarQube Dashboard.'
             }
         }
@@ -29,7 +29,7 @@ pipeline {
             steps {
                 dir('backend') {
                     echo 'Building Docker Image...'
-                    // sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} -t ${DOCKER_IMAGE}:latest ."
+                    sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} -t ${DOCKER_IMAGE}:latest ."
                 }
             }
         }
@@ -37,24 +37,24 @@ pipeline {
         stage('Automated Tests - Postman/Newman') {
             steps {
                 echo 'Starting Temporary Container for Newman Tests...'
-                // sh "docker run -d --name temp-backend -p 5000:5000 ${DOCKER_IMAGE}:latest"
+                sh "docker run -d --name temp-backend -p 5000:5000 ${DOCKER_IMAGE}:latest"
                 
                 echo 'Running Postman tests via Newman...'
-                // sh "npx newman run ../tests/postman_collection.json -k"
+                sh "npx newman run ../tests/postman_collection.json -k"
                 
                 echo 'Cleaning up Temporary Container...'
-                // sh "docker rm -f temp-backend"
+                sh "docker rm -f temp-backend"
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
                 echo 'Pushing to Docker Hub Registry...'
-                // withCredentials([usernamePassword(credentialsId: DOCKER_HUB_CREDENTIALS, passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
-                //     sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin"
-                //     sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                //     sh "docker push ${DOCKER_IMAGE}:latest"
-                // }
+                withCredentials([usernamePassword(credentialsId: DOCKER_HUB_CREDENTIALS, passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                    sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin"
+                    sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                    sh "docker push ${DOCKER_IMAGE}:latest"
+                }
             }
         }
         

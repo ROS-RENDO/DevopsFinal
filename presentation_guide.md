@@ -126,9 +126,11 @@ This document maps every grading requirement to the exact **Code** in our reposi
 ## 🛠️ Appendix: Local Jenkins Setup Guide
 If you are presenting the CI Pipeline locally on your machine, follow these steps before the presentation starts to get Jenkins running and connected to Docker Hub:
 
-### 1. Spin up Jenkins in Docker
-Run this command in your terminal to start Jenkins:
-`docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts`
+### 1. Build and Spin up Custom Jenkins
+To run the *real* CI pipeline, Jenkins needs Docker, Node.js, and SonarScanner installed. We created a custom `Jenkins.Dockerfile` for this!
+Run these commands in your terminal:
+1. `docker build -f Jenkins.Dockerfile -t devops-jenkins-custom .`
+2. `docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home -v //var/run/docker.sock:/var/run/docker.sock devops-jenkins-custom`
 
 ### 2. Unlock Jenkins
 Run `docker logs jenkins` in the terminal. Look for the password block and copy the long string (e.g. `97f8ec467f464b9587704671fea4d92f`).

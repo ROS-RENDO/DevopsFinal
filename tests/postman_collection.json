@@ -28,10 +28,12 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://localhost:5000/health",
+					"raw": "https://host.docker.internal:5000/health",
 					"protocol": "https",
 					"host": [
-						"localhost"
+						"host",
+						"docker",
+						"internal"
 					],
 					"port": "5000",
 					"path": [
