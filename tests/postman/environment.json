@@ -1,0 +1,21 @@
+{
+  "id": "e0e37df3-6b3a-4933-912b-31bc5bba3f08",
+  "name": "Local Env",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2023-10-27T00:00:00.000Z",
+  "_postman_exported_using": "Postman/10.19.7"
+}
