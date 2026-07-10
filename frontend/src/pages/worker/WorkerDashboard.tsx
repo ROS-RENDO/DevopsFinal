@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/layout/Navbar';
-import { Calendar, MapPin, DollarSign, Clock, CheckCircle } from 'lucide-react';
+import { Calendar, MapPin, DollarSign, CheckCircle } from 'lucide-react';
 
 export default function WorkerDashboard() {
   const navigate = useNavigate();

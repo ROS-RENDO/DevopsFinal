@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Zap, ShieldCheck, ArrowRight } from 'lucide-react';
 
 export default function MFAPage() {
-  const navigate = useNavigate();
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -15,7 +14,7 @@ export default function MFAPage() {
   }, []);
 
   const handleChange = (i: number, val: string) => {
-    if (!/^[0-9]*$/.test(val)) return; // numbers only
+    if (!/^\d*$/.test(val)) return; // numbers only
     
     const newCode = [...code];
     newCode[i] = val;
@@ -43,34 +42,16 @@ export default function MFAPage() {
       setError('Please enter all 6 digits');
       return;
     }
-    
+
     setError('');
     setLoading(true);
-    
-    try {
-      const res = await fetch('http://localhost:5000/api/auth/mfa/validate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ tempToken: state.tempToken, token: fullCode }),
-      });
-      const data = await res.json();
-      
-      if (!res.ok) throw new Error(data.error || 'Verification failed');
-      
-      // Store user info (JWT is now secure in httpOnly cookie)
-      localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Redirect to correct dashboard based on role
-      switch (data.user.role) {
-        case 'customer': navigate('/'); break;
-        case 'company': navigate('/company'); break;
-        case 'worker': navigate('/worker'); break;
-        case 'admin': navigate('/admin'); break;
-        default: navigate('/');
+    try {
+      if (state.tempToken) {
+        setError('MFA is not enabled in the current backend configuration.');
+      } else {
+        setError('MFA is not enabled in the current backend configuration.');
       }
-    } catch (err: any) {
-      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -78,21 +59,7 @@ export default function MFAPage() {
 
   const resendCode = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/mfa/resend', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ tempToken: state.tempToken }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to resend code');
-      
-      // Update state if tempToken changed
-      if (data.tempToken) {
-        navigate(location.pathname, { replace: true, state: { ...state, tempToken: data.tempToken } });
-      }
-      setError('');
-      alert('A new code has been sent to your email.');
+      setError('MFA is not enabled in the current backend configuration.');
     } catch (err: any) {
       setError(err.message);
     }
@@ -125,7 +92,9 @@ export default function MFAPage() {
               {code.map((d, i) => (
                 <input
                   key={i}
-                  ref={(el) => (inputsRef.current[i] = el)}
+                  ref={(el) => {
+                    inputsRef.current[i] = el;
+                  }}
                   type="text"
                   maxLength={1}
                   value={d}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Star, Wrench, Zap, Droplet, Paintbrush, Home, Fan, CheckCircle, Shield, Clock, Award, TrendingUp, Sparkles, Search as SearchIcon, X, ShoppingCart, Trash2, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { apiRequest } from '../../lib/api';
 
 /* ── Reveal ── */
 function useReveal() {
@@ -69,7 +70,7 @@ export default function LandingPage() {
   const [cartNote, setCartNote] = useState('');
   const [hi, setHi] = useState(0);
   const [user, setUser] = useState<any>(null);
-  const ht = useRef<ReturnType<typeof setInterval>>();
+  const ht = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     // Restore cart if it was saved prior to login redirect
@@ -82,15 +83,28 @@ export default function LandingPage() {
 
     const u = localStorage.getItem('user');
     if (u) {
-      try { setUser(JSON.parse(u)); } catch(e){}
+      try {
+        setUser(JSON.parse(u));
+      } catch {
+        localStorage.removeItem('user');
+      }
     }
 
-    ht.current = setInterval(() => setHi(p => (p + 1) % SLIDES.length), 6000); 
-    return () => clearInterval(ht.current); 
+    ht.current = window.setInterval(() => setHi(p => (p + 1) % SLIDES.length), 6000); 
+    return () => {
+      if (ht.current) {
+        clearInterval(ht.current);
+      }
+    };
   }, []);
-  const go = (i: number) => { clearInterval(ht.current); setHi(i); };
+  const go = (i: number) => {
+    if (ht.current) {
+      clearInterval(ht.current);
+    }
+    setHi(i);
+  };
 
-  const addC = (s: typeof S[0]) => { if (!cart.find(c => c.id === s.id)) { setCart(p => [...p, { id: s.id, n: s.n, $: s.$, p: s.p }]); setCartOpen(true); } };
+  const addC = (s: typeof S[0]) => { if (!cart.some(c => c.id === s.id)) { setCart(p => [...p, { id: s.id, n: s.n, $: s.$, p: s.p }]); setCartOpen(true); } };
   const rmC = (id: string) => setCart(p => p.filter(c => c.id !== id));
   const total = cart.reduce((a, c) => a + c.$, 0);
 
@@ -105,16 +119,18 @@ export default function LandingPage() {
     setBk('loading');
     try {
       for (const it of cart) {
-        const r = await fetch('http://localhost:5000/api/bookings', { 
-          method: 'POST', 
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', 
-          body: JSON.stringify({ serviceId: it.id, serviceName: it.n, date: new Date().toISOString() }) 
+        const { response } = await apiRequest('/bookings', {
+          method: 'POST',
+          body: JSON.stringify({ serviceDetails: `${it.n} — ${it.p}` }),
         });
-        if (!r.ok) throw new Error();
+        if (!response.ok) throw new Error();
       }
       setBk('success'); setTimeout(() => { setCart([]); setBk(null); setCartOpen(false); }, 2500);
-    } catch { setBk('error'); setTimeout(() => setBk(null), 3000); }
+    } catch (error) {
+      console.error(error);
+      setBk('error');
+      setTimeout(() => setBk(null), 3000);
+    }
   };
 
   const filtered = cat === 'all' ? S : S.filter(s => s.c === cat);

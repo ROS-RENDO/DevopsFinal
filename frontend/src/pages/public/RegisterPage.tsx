@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Briefcase, ArrowRight, Zap, Star, Users, BarChart3 } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
+import { apiRequest } from '../../lib/api';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -17,19 +18,13 @@ export default function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/auth/register', {
+      const { response, data } = await apiRequest('/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ name, email, password, role }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Registration failed');
-      if (data.requiresMfa) {
-        navigate('/mfa', { state: { tempToken: data.tempToken, email: data.email } });
-      } else {
-        navigate('/login');
-      }
+
+      if (!response.ok) throw new Error(data?.message || data?.error || 'Registration failed');
+      navigate('/login');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -41,22 +36,8 @@ export default function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ credential: credentialResponse.credential, role }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Google registration failed');
-      
-      if (data.requiresMfa) {
-        navigate('/mfa', { state: { tempToken: data.tempToken, email: data.email } });
-      } else {
-        navigate('/login');
-      }
-    } catch (err: any) {
-      setError(err.message);
+      void credentialResponse;
+      setError('Google registration is not enabled in the current backend configuration.');
     } finally {
       setLoading(false);
     }
@@ -124,7 +105,6 @@ export default function RegisterPage() {
                     style={{ ...inputStyle, appearance: 'none', cursor: 'pointer' }}
                     onFocus={focusIn as any} onBlur={focusOut as any}>
                     <option value="customer">Customer</option>
-                    <option value="company">Company</option>
                     <option value="worker">Worker</option>
                     <option value="admin">Admin</option>
                   </select>

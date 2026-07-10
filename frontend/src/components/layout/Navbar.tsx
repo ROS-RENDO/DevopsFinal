@@ -26,7 +26,6 @@ export default function Navbar() {
           {user ? (
             <>
               {user.role === 'admin' && <Link to="/admin" style={{ fontSize: '0.88rem', fontWeight: 600, color: '#555', textDecoration: 'none', padding: '8px 12px' }}>Dashboard</Link>}
-              {user.role === 'company' && <Link to="/company" style={{ fontSize: '0.88rem', fontWeight: 600, color: '#555', textDecoration: 'none', padding: '8px 12px' }}>Business Portal</Link>}
               {user.role === 'worker' && <Link to="/worker" style={{ fontSize: '0.88rem', fontWeight: 600, color: '#555', textDecoration: 'none', padding: '8px 12px' }}>Worker Portal</Link>}
               {user.role === 'customer' && <Link to="/customer" style={{ fontSize: '0.88rem', fontWeight: 600, color: '#555', textDecoration: 'none', padding: '8px 12px' }}>Find Services</Link>}
               
@@ -36,8 +35,7 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link to="/customer" style={{ fontSize: '0.88rem', fontWeight: 600, color: '#555', textDecoration: 'none', padding: '8px 12px' }}>Find Services</Link>
-              <Link to="/company" style={{ fontSize: '0.88rem', fontWeight: 600, color: '#555', textDecoration: 'none', padding: '8px 12px' }}>For Business</Link>
+              <Link to="/" style={{ fontSize: '0.88rem', fontWeight: 600, color: '#555', textDecoration: 'none', padding: '8px 12px' }}>Find Services</Link>
               <Link to="/worker" style={{ fontSize: '0.88rem', fontWeight: 600, color: '#555', textDecoration: 'none', padding: '8px 12px' }}>For Workers</Link>
               <Link to="/login" style={{ fontSize: '0.88rem', fontWeight: 600, color: '#555', textDecoration: 'none', padding: '8px 18px', borderRadius: '10px', border: '1.5px solid rgba(0,0,0,0.1)', marginLeft: '8px' }}>Log in</Link>
               <Link to="/register" style={{ fontSize: '0.88rem', fontWeight: 600, color: '#fff', textDecoration: 'none', padding: '8px 18px', borderRadius: '10px', background: '#111' }}>Sign up</Link>

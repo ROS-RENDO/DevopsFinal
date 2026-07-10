@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Zap, Shield, CheckCircle } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
+import { apiRequest } from '../../lib/api';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -16,29 +17,24 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const { response, data } = await apiRequest('/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Login failed');
+
+      if (!response.ok) throw new Error(data?.message || data?.error || 'Login failed');
+
       const params = new URLSearchParams(location.search);
       const redirect = params.get('redirect');
-      if (data.requiresMfa) {
-        navigate('/mfa', { state: { tempToken: data.tempToken, email: data.email, redirect } });
-        return;
-      }
 
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.data));
 
       if (redirect === 'booking') {
         navigate('/');
       } else {
-        switch (data.user.role) {
+        switch (data.data.role) {
           case 'customer': navigate('/'); break;
-          case 'company': navigate('/company'); break;
           case 'worker': navigate('/worker'); break;
           case 'admin': navigate('/admin'); break;
           default: navigate('/');
@@ -55,23 +51,8 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ credential: credentialResponse.credential }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Google login failed');
-      const params = new URLSearchParams(location.search);
-      const redirect = params.get('redirect');
-      
-      if (data.requiresMfa) {
-        navigate('/mfa', { state: { tempToken: data.tempToken, email: data.email, redirect } });
-        return;
-      }
-    } catch (err: any) {
-      setError(err.message);
+      void credentialResponse;
+      setError('Google login is not enabled in the current backend configuration.');
     } finally {
       setLoading(false);
     }
