@@ -82,17 +82,17 @@ jobs:
 
       - name: Start application stack
         env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
-          AUTH_TOKEN_ENCRYPTION_KEY: ${{ secrets.AUTH_TOKEN_ENCRYPTION_KEY }}
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD || 'root' }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE || 'test_db' }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER || 'test_user' }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD || 'test_pass' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'test_jwt_secret_key_123' }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET || 'test_jwt_refresh_secret_key_456' }}
+          AUTH_TOKEN_ENCRYPTION_KEY: ${{ secrets.AUTH_TOKEN_ENCRYPTION_KEY || 'test_encryption_key_must_be_long_enough' }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST || 'smtp.gmail.com' }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT || '587' }}
+          SMTP_USER: ${{ secrets.SMTP_USER || 'dummy@gmail.com' }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS || 'dummy' }}
         run: |
           cat <<EOF > .env
           MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
