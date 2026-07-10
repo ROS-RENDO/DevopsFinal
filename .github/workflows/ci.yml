@@ -35,14 +35,14 @@ jobs:
 
       - name: Backend - install, audit, build
         run: |
-          cd app/backend
+          cd backend
           npm ci
           npm audit --audit-level=high
           npm run build --if-present
 
       - name: Frontend - install, audit, build
         run: |
-          cd app/frontend
+          cd frontend
           npm ci
           npm audit --audit-level=high
           npm run build --if-present
@@ -61,137 +61,114 @@ jobs:
           args: >
             -Dsonar.projectKey=DevSec_Final
             -Dsonar.organization=camtech
-            -Dsonar.sources=app
+            -Dsonar.sources=.
             -Dsonar.exclusions=**/node_modules/**,**/dist/**
 
-  # =========================================================
-  # JOB 2 — Spin up the stack once, run API tests + DAST against it
-  # =========================================================
-  integration-and-dast:
-    name: API Tests (Newman) & DAST (ZAP)
-    needs: build-and-scan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Start application stack
-        run: |
-          docker compose -f docker-compose.yml up -d --build
-
-          echo "Waiting for backend to become healthy..."
-          for i in $(seq 1 30); do
-            if curl --silent --fail http://localhost:3000/health -o /dev/null; then
-              echo "Backend is up."
-              break
-            fi
-            echo "Not ready yet (attempt $i/30)..."
-            sleep 5
-            if [ "$i" -eq 30 ]; then
-              echo "::error::Backend did not become healthy in time."
-              docker compose logs
-              exit 1
-            fi
-          done
-
-      - name: Install Newman
-        run: npm install -g newman
-
-      - name: Run Postman API tests
-        run: |
-          newman run tests/postman/collection.json \
-            --environment tests/postman/environment.json \
-            --reporters cli,junit \
-            --reporter-junit-export newman-results.xml
-
-      - name: Upload Newman results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: newman-results
-          path: newman-results.xml
-
-      - name: OWASP ZAP Baseline Scan (DAST)
-        uses: zaproxy/action-baseline@v0.12.0
-        with:
-          target: 'http://localhost:3000/'
-          fail_action: true
-
-      - name: Stop application stack
-        if: always()
-        run: docker compose -f docker-compose.yml down -v
-
-  # =========================================================
-  # JOB 3 — Build, scan, and push images (main branch only)
-  # =========================================================
-  build-and-push:
-    name: Build & Push Images
-    needs: integration-and-dast
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set image metadata
-        id: meta
-        run: |
-          REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          echo "repo=$REPO_NAME" >> "$GITHUB_OUTPUT"
-          echo "sha_tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
-
-      - name: Build backend image
-        run: |
-          docker build -t $REGISTRY/${{ steps.meta.outputs.repo }}/backend:${{ steps.meta.outputs.sha_tag }} app/backend
-
-      - name: Build frontend image
-        run: |
-          docker build -t $REGISTRY/${{ steps.meta.outputs.repo }}/frontend:${{ steps.meta.outputs.sha_tag }} app/frontend
-
-      - name: Trivy scan - backend image
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          image-ref: ${{ env.REGISTRY }}/${{ steps.meta.outputs.repo }}/backend:${{ steps.meta.outputs.sha_tag }}
-          severity: 'CRITICAL,HIGH'
-          exit-code: '1'
-          format: 'sarif'
-          output: 'trivy-backend.sarif'
-
-      - name: Trivy scan - frontend image
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          image-ref: ${{ env.REGISTRY }}/${{ steps.meta.outputs.repo }}/frontend:${{ steps.meta.outputs.sha_tag }}
-          severity: 'CRITICAL,HIGH'
-          exit-code: '1'
-          format: 'sarif'
-          output: 'trivy-frontend.sarif'
-
-      - name: Upload Trivy results to GitHub Security tab
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: '.'
-
-      - name: Push images to GHCR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "$GITHUB_TOKEN" | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
-
-          REPO=${{ steps.meta.outputs.repo }}
-          SHA_TAG=${{ steps.meta.outputs.sha_tag }}
-
-          docker tag $REGISTRY/$REPO/backend:$SHA_TAG $REGISTRY/$REPO/backend:latest
-          docker tag $REGISTRY/$REPO/frontend:$SHA_TAG $REGISTRY/$REPO/frontend:latest
-
-          docker push $REGISTRY/$REPO/backend:$SHA_TAG
-          docker push $REGISTRY/$REPO/backend:latest
-          docker push $REGISTRY/$REPO/frontend:$SHA_TAG
-          docker push $REGISTRY/$REPO/frontend:latest
-
-      # No automated deploy job here — for the tunnel workflow, deployment is a
-      # manual/local step: pull the image on your machine, `docker compose up`,
-      # then expose it with ngrok / cloudflared. See scripts/start-demo.sh.
+#   # =========================================================
+#   # JOB 2 — Spin up the stack once, run API tests + DAST against it
+#   # =========================================================
+#   integration-and-dast:
+#     name: API Tests (Newman) & DAST (ZAP)
+#     needs: build-and-scan
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+# 
+#       - name: Start application stack
+#         run: |
+#           docker compose -f docker-compose.yml up -d --build
+# 
+#           echo "Waiting for backend to become healthy..."
+#           for i in $(seq 1 30); do
+#             if curl --silent --fail http://localhost:3000/health -o /dev/null; then
+#               echo "Backend is up."
+#               break
+#             fi
+#             echo "Not ready yet (attempt $i/30)..."
+#             sleep 5
+#             if [ "$i" -eq 30 ]; then
+#               echo "::error::Backend did not become healthy in time."
+#               docker compose logs
+#               exit 1
+#             fi
+#           done
+# 
+#       - name: Install Newman
+#         run: npm install -g newman
+# 
+#       - name: Run Postman API tests
+#         run: |
+#           newman run tests/postman/collection.json \
+#             --environment tests/postman/environment.json \
+#             --reporters cli,junit \
+#             --reporter-junit-export newman-results.xml
+# 
+#       - name: Upload Newman results
+#         if: always()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: newman-results
+#           path: newman-results.xml
+# 
+#       - name: OWASP ZAP Baseline Scan (DAST)
+#         uses: zaproxy/action-baseline@v0.12.0
+#         with:
+#           target: 'http://localhost:3000/'
+#           fail_action: true
+# 
+#       - name: Stop application stack
+#         if: always()
+#         run: docker compose -f docker-compose.yml down -v
+# 
+#   # =========================================================
+#   # JOB 3 — Build, scan, and push images (main branch only)
+#   # =========================================================
+#   build-and-push:
+#     name: Build & Push Images
+#     needs: integration-and-dast
+#     runs-on: ubuntu-latest
+#     permissions:
+#       contents: read
+#       packages: write
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+# 
+#       - name: Set image metadata
+#         id: meta
+#         run: |
+#           REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+#           echo "repo=$REPO_NAME" >> "$GITHUB_OUTPUT"
+#           echo "sha_tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+# 
+#       - name: Build backend image
+#         run: |
+#           docker build -t $REGISTRY/${{ steps.meta.outputs.repo }}/backend:${{ steps.meta.outputs.sha_tag }} backend
+# 
+#       - name: Build frontend image
+#         run: |
+#           docker build -t $REGISTRY/${{ steps.meta.outputs.repo }}/frontend:${{ steps.meta.outputs.sha_tag }} frontend
+# 
+# 
+#       - name: Push images to GHCR
+#         if: github.event_name == 'push' && github.ref == 'refs/heads/backend-ts'
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         run: |
+#           echo "$GITHUB_TOKEN" | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
+# 
+#           REPO=${{ steps.meta.outputs.repo }}
+#           SHA_TAG=${{ steps.meta.outputs.sha_tag }}
+# 
+#           docker tag $REGISTRY/$REPO/backend:$SHA_TAG $REGISTRY/$REPO/backend:latest
+#           docker tag $REGISTRY/$REPO/frontend:$SHA_TAG $REGISTRY/$REPO/frontend:latest
+# 
+#           docker push $REGISTRY/$REPO/backend:$SHA_TAG
+#           docker push $REGISTRY/$REPO/backend:latest
+#           docker push $REGISTRY/$REPO/frontend:$SHA_TAG
+#           docker push $REGISTRY/$REPO/frontend:latest
+# 
+#       # No automated deploy job here — for the tunnel workflow, deployment is a
+#       # manual/local step: pull the image on your machine, `docker compose up`,
+#       # then expose it with ngrok / cloudflared. See scripts/start-demo.sh.
