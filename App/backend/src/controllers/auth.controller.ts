@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../utils/db.js';
+import { encryptText, decryptText } from '../utils/crypto.js';
+import { logSecurityEvent } from '../utils/logger.js';
 
 const ALLOWED_ROLES = ['customer', 'worker', 'admin'] as const;
 
@@ -12,15 +14,23 @@ const normalizeRole = (role?: string): string => {
     : 'customer';
 };
 
+const ensureSecret = (name: string): string => {
+  const secret = process.env[name];
+  if (!secret) {
+    throw new Error(`Missing environment variable ${name}`);
+  }
+  return secret;
+};
+
 const generateToken = (user: { id: number; email: string; role: string }) => {
-  const secret = process.env.JWT_SECRET || 'your_super_secret_jwt_key_here';
+  const secret = ensureSecret('JWT_SECRET');
   return jwt.sign({ id: user.id, email: user.email, role: user.role }, secret, {
     expiresIn: '15m',
   });
 };
 
 const generateRefreshToken = (user: { id: number; email: string; role: string }) => {
-  const secret = process.env.JWT_REFRESH_SECRET || 'your_super_secret_refresh_key_here';
+  const secret = ensureSecret('JWT_REFRESH_SECRET');
   return jwt.sign({ id: user.id, email: user.email, role: user.role }, secret, {
     expiresIn: '7d',
   });
@@ -33,12 +43,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
+      logSecurityEvent('auth.register_conflict', { email }, 'warn');
       res.status(400).json({ status: 'error', message: 'User already exists with this email' });
       return;
     }
 
     // Hash password
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const normalizedRole = normalizeRole(role);
@@ -53,13 +64,15 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       },
     });
 
+    logSecurityEvent('auth.register_success', { userId: newUser.id, email: newUser.email, role: newUser.role });
+
     res.status(201).json({
       status: 'success',
       message: 'User registered successfully',
       data: { id: newUser.id, email: newUser.email, role: newUser.role },
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    logSecurityEvent('auth.register_error', { error: error instanceof Error ? error.message : 'unknown' }, 'error');
     res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
@@ -71,6 +84,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Find user
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
+      logSecurityEvent('auth.login_failed', { email, reason: 'user_not_found', ip: req.ip }, 'warn');
       res.status(401).json({ status: 'error', message: 'Invalid credentials' });
       return;
     }
@@ -78,6 +92,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      logSecurityEvent('auth.login_failed', { email, reason: 'invalid_password', ip: req.ip }, 'warn');
       res.status(401).json({ status: 'error', message: 'Invalid credentials' });
       return;
     }
@@ -95,10 +110,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const token = generateToken({ ...user, role: normalizedRole });
     const refreshToken = generateRefreshToken({ ...user, role: normalizedRole });
 
+    const encryptedRefreshToken = encryptText(refreshToken);
+
     // Save refresh token in DB
     await prisma.user.update({
       where: { id: user.id },
-      data: { refreshToken },
+      data: { refreshToken: encryptedRefreshToken },
     });
 
     // Set HttpOnly cookie for refresh token
@@ -109,6 +126,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
+    logSecurityEvent('auth.login_success', { userId: user.id, email: user.email, role: normalizedRole, ip: req.ip });
+
     res.json({
       status: 'success',
       message: 'Logged in successfully',
@@ -116,7 +135,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       data: { id: user.id, email: user.email, role: normalizedRole },
     });
   } catch (error) {
-    console.error('Login error:', error);
+    logSecurityEvent('auth.login_error', { error: error instanceof Error ? error.message : 'unknown' }, 'error');
     res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
@@ -137,8 +156,12 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
   // Clear cookie
   res.cookie('refreshToken', '', {
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
     expires: new Date(0),
   });
+
+  logSecurityEvent('auth.logout', { userId: req.user?.id, ip: req.ip });
 
   res.json({ status: 'success', message: 'Logged out successfully' });
 };
@@ -151,13 +174,21 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    const secret = process.env.JWT_REFRESH_SECRET || 'your_super_secret_refresh_key_here';
+    const secret = ensureSecret('JWT_REFRESH_SECRET');
     const decoded = jwt.verify(token, secret) as { id: number; email: string; role: string };
 
     // Find user and check if token matches the DB
     const user = await prisma.user.findUnique({ where: { id: decoded.id } });
-    if (!user || user.refreshToken !== token) {
-      res.status(403).json({ status: 'error', message: 'Forbidden - Invalid refresh token' });
+    if (!user || !user.refreshToken) {
+      logSecurityEvent('auth.refresh_rejected', { userId: decoded.id, ip: req.ip }, 'warn');
+      res.status(403).json({ status: 'error', message: 'Forbidden' });
+      return;
+    }
+
+    const storedToken = decryptText(user.refreshToken);
+    if (storedToken !== token) {
+      logSecurityEvent('auth.refresh_rejected', { userId: decoded.id, ip: req.ip }, 'warn');
+      res.status(403).json({ status: 'error', message: 'Forbidden' });
       return;
     }
 
@@ -169,6 +200,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       token: newToken,
     });
   } catch (error) {
-    res.status(403).json({ status: 'error', message: 'Forbidden - Invalid or expired refresh token' });
+    logSecurityEvent('auth.refresh_error', { error: error instanceof Error ? error.message : 'unknown', ip: req.ip }, 'warn');
+    res.status(403).json({ status: 'error', message: 'Forbidden' });
   }
 };

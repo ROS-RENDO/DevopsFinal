@@ -29,6 +29,9 @@ services:
     environment:
       DATABASE_URL: mysql://${MYSQL_USER:-servd}:${MYSQL_PASSWORD:-servdpass}@db:3306/${MYSQL_DATABASE:-servd}?connection_limit=5
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      JWT_SECRET: ${JWT_SECRET:-replace-with-long-random-secret}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-replace-with-long-random-refresh-secret}
+      AUTH_TOKEN_ENCRYPTION_KEY: ${AUTH_TOKEN_ENCRYPTION_KEY:-replace-with-32-byte-key}
     depends_on:
       db:
         condition: service_healthy
