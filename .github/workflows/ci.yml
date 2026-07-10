@@ -120,6 +120,9 @@ jobs:
           name: newman-results
           path: newman-results.xml
 
+      - name: Fix workspace permissions for ZAP
+        run: sudo chmod -R 777 .
+
       - name: OWASP ZAP Baseline Scan (DAST)
         uses: zaproxy/action-baseline@66042c8e7e24680119199a017e5b0e8603bf4dae
         with:
