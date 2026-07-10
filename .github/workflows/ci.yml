@@ -36,14 +36,15 @@ jobs:
       - name: Backend - install, audit, build
         run: |
           cd backend
-          npm ci
+          npm ci --ignore-scripts
+          npx prisma generate
           npm audit --audit-level=high
           npm run build --if-present
 
       - name: Frontend - install, audit, build
         run: |
           cd frontend
-          npm ci
+          npm ci --ignore-scripts
           npm audit --audit-level=high
           npm run build --if-present
 
@@ -106,7 +107,7 @@ jobs:
           done
 
       - name: Install Newman
-        run: npm install -g newman
+        run: npm install -g newman --ignore-scripts
 
       - name: Run Postman API tests
         run: |
