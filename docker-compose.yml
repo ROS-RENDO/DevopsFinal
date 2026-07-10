@@ -51,7 +51,7 @@ services:
         condition: service_healthy
     command: sh -c "npx prisma db push && npm start"
     deploy:
-      replicas: 3
+      replicas: 1
       resources:
         limits:
           cpus: "1.0"
