@@ -34,6 +34,8 @@ jobs:
           node-version: '24'
 
       - name: Backend - install, audit, build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           cd backend
           npm ci --ignore-scripts
