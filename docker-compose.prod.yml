@@ -1,12 +1,9 @@
 services:
   # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
+  #   image: ghcr.io/${GHCR_REPO}/frontend:latest
   #   expose:
   #     - "80"
   #   # add depends_on and other configs as needed when frontend is ready
-
 
   db:
     image: mysql:8.0
@@ -30,9 +27,7 @@ services:
       retries: 5
 
   backend-blue:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/${GHCR_REPO}/backend:latest
     expose:
       - "3000"
     env_file: ./backend/.env
@@ -51,9 +46,7 @@ services:
           memory: 128M
 
   backend-green:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/${GHCR_REPO}/backend:latest
     expose:
       - "3000"
     env_file: ./backend/.env

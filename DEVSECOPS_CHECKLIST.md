@@ -23,7 +23,7 @@
 |---|----------|----------------|--------|
 | 1 | Plan | Jira | ✅ Done |
 | 2 | Source Control | GitHub | ✅ Done |
-| 3 | CI - Build & Test | Jenkins | ❌ Not Implemented |
+| 3 | CI - Build & Test | GitHub Actions | ❌ Not Implemented |
 | 4 | Automated Tests | Postman / Newman | ❌ Not Implemented |
 | 5 | Containerize | Docker (Dockerfile) | ✅ Done |
 | 6 | Image Registry | Docker Hub | ✅ Done |
@@ -50,7 +50,7 @@
 - [ ] **Logging / Detection** — Winston structured logging (plan approved)
 
 ### DevOps
-- [ ] **CI - Build & Test** — Jenkins pipeline
+- [ ] **CI - Build & Test** — GitHub Actions pipeline
 - [ ] **Automated Tests** — Postman / Newman test collections
 - [ ] **Orchestrate / Run** — Kubernetes deployment (minikube / k3s / kind)
 - [ ] **Deploy Strategy** — Blue-Green deployment
