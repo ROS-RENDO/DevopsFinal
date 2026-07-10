@@ -388,11 +388,10 @@ export default function LandingPage() {
                 placeholder="E.g., Please ring the doorbell..."
                 style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '0.9rem' }}
               />
-              {/* VULNERABLE XSS RENDER POINT */}
               {cartNote && (
                  <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#666', background: '#f5f5f5', padding: '8px', borderRadius: '6px' }}>
                    <strong>Note Preview: </strong>
-                   <span dangerouslySetInnerHTML={{ __html: cartNote }} />
+                   <span>{cartNote}</span>
                  </div>
               )}
             </div>
