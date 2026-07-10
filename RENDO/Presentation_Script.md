@@ -27,7 +27,7 @@
 
 **Slide 5: Shift-Left Security Scans (A5 & A6)**
 * "Writing secure code isn't enough; we have to scan for vulnerabilities. We ran an `npm audit` (SCA) to analyze our dependency tree and documented a non-exploitable vulnerability in our dev-tools."
-* *(Show Screenshot)* "Our Jenkins pipeline automatically runs SonarQube for SAST (Static Analysis) and OWASP ZAP for DAST (Dynamic Analysis) to ensure no runtime vulnerabilities make it to production."
+* *(Show Screenshot)* "Our GitHub Actions pipeline automatically runs SonarQube for SAST (Static Analysis) and OWASP ZAP for DAST (Dynamic Analysis) to ensure no runtime vulnerabilities make it to production."
 
 **Slide 6: Security Logging (A7)**
 * "Finally, if we are attacked, we need to know. We use `Winston` for structured logging. If an attacker attempts credential stuffing, our `security.log` captures the bursts of failed logins by IP, without ever exposing passwords. Our global error handler ensures that if the app crashes, the user sees a generic 500 error, keeping stack traces hidden."
@@ -35,14 +35,14 @@
 ---
 
 ## 🎤 Speaker 3: The Handoff & CI/CD Pipeline
-*(Focus: Handoff, Jenkins Pipeline, Postman, Containerization - B1, B2.2, B2.4)*
+*(Focus: Handoff, GitHub Actions Pipeline, Postman, Containerization - B1, B2.2, B2.4)*
 
 **Slide 7: The Hand-Off**
 * "As Speaker 2 mentioned, our security controls are robust. **But these controls are only as good as the pipeline that enforces them.** I will now walk through how we deliver this secure app using DevOps."
 
 **Slide 8: The CI/CD Pipeline (B1 & B2.2)**
-* "We enforce our security and quality through a **Jenkins** CI pipeline. Every time code is pushed, our `Jenkinsfile` runs our SonarQube scans, builds our Docker application, and executes our automated **Postman/Newman** tests."
-* "To make this 100% operational in an isolated environment, we engineered a custom Jenkins Docker image (`Jenkins.Dockerfile`) that installs all these necessary build tools natively!"
+* "We enforce our security and quality through a **GitHub Actions** CI pipeline. Every time code is pushed, our `.github/workflows/ci.yml` runs our SonarQube scans, builds our Docker application, and executes our automated **Postman/Newman** tests."
+* "To make this completely isolated and portable, we run our tooling directly inside temporary Docker containers on the GitHub runners, ensuring a clean state for every build!"
 
 **Slide 9: Containerization (B2.4)**
 * "Once the Postman tests pass, the pipeline builds our Docker image. We wrote a multi-stage `Dockerfile`. We don't run as root—we run as a restricted `node` user (Least Privilege). The final image is then pushed to **Docker Hub**."
@@ -64,4 +64,4 @@
 * "We also configured **ArgoCD** to automatically sync our Kubernetes manifests directly from Git!"
 
 **Slide 13: Joint Close & Q&A**
-* "To wrap up: We built a secure Node.js API protected by Bcrypt and Zod, and we shipped it through a fully automated Jenkins pipeline into a highly available Kubernetes cluster. Secure software, delivered securely. We are now open for Q&A!"
+* "To wrap up: We built a secure Node.js API protected by Bcrypt and Zod, and we shipped it through a fully automated GitHub Actions pipeline into a highly available Kubernetes cluster. Secure software, delivered securely. We are now open for Q&A!"

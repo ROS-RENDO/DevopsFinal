@@ -53,7 +53,7 @@ This document maps every grading requirement to the exact **Code** in our reposi
 * **What it is:** Static (code) and Dynamic (running app) vulnerability scanning.
 * **Code / Artifact:** 
   * SAST: `sonar-project.properties`.
-  * DAST: `Jenkinsfile` (OWASP ZAP step).
+  * DAST: `.github/workflows/ci.yml` (OWASP ZAP step).
 * **Command / Demo:** 
   1. **SAST:** Run `sonar-scanner` and open the SonarQube dashboard URL to show the Quality Gate.
   2. **DAST:** Ensure the backend is running (`npm run dev`), then open a new terminal and run:
@@ -84,10 +84,10 @@ This document maps every grading requirement to the exact **Code** in our reposi
   * **Code:** `docker-compose.yml`.
   * **Demo:** Run `docker-compose up -d` to spin up infrastructure instantly.
 * **B2.2 CI Pipeline & Auto Testing:**
-  * **Code:** `Jenkinsfile` and `tests/postman_collection.json`.
+  * **Code:** `.github/workflows/ci.yml` and `tests/postman_collection.json`.
   * **Demo:** 
-    1. Start Jenkins locally: `docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts`
-    2. Show the Jenkins dashboard with a green (passed) pipeline run that automatically ran Postman/Newman tests.
+    1. Open the GitHub repository in the browser and navigate to the **Actions** tab.
+    2. Show the GitHub Actions dashboard with a green (passed) workflow run that automatically ran Postman/Newman tests.
 * **B2.3 Deployment Strategy:**
   * **Code:** `k8s/` (Blue-Green Deployment manifests).
   * **Demo:** Show how traffic can be shifted from Blue to Green safely.
