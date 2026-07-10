@@ -24,12 +24,12 @@ jobs:
       security-events: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0   # SonarCloud wants full history
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
 
@@ -48,12 +48,12 @@ jobs:
           npm run build --if-present
 
       - name: Secrets scan (gitleaks)
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: SonarCloud Scan (SAST)
-        uses: SonarSource/sonarcloud-github-action@v3.1.0
+        uses: SonarSource/sonarcloud-github-action@383f7e52eae3ab0510c3cb0e7d9d150bbaeab838
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -70,9 +70,12 @@ jobs:
     name: API Tests (Newman) & DAST (ZAP)
     needs: build-and-scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - name: Start application stack
         run: |
@@ -112,13 +115,13 @@ jobs:
 
       - name: Upload Newman results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: newman-results
           path: newman-results.xml
 
       - name: OWASP ZAP Baseline Scan (DAST)
-        uses: zaproxy/action-baseline@v0.12.0
+        uses: zaproxy/action-baseline@66042c8e7e24680119199a017e5b0e8603bf4dae
         with:
           target: 'http://localhost:3000/'
           fail_action: true
@@ -139,7 +142,7 @@ jobs:
   #     packages: write
   #   steps:
   #     - name: Checkout code
-  #       uses: actions/checkout@v4
+  #       uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
   #     - name: Set image metadata
   #       id: meta

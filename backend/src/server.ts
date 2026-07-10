@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
 import apiRoutes from './routes/index.js';
 
 dotenv.config();
@@ -13,6 +14,7 @@ const port = process.env.PORT || 3000;
 app.set('trust proxy', 1);
 
 // Middleware
+app.use(helmet());
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Adjust based on your frontend URL
