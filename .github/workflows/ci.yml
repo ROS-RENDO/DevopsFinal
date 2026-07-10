@@ -25,16 +25,11 @@ jobs:
         with:
           fetch-depth: 0 # Required for SonarQube to analyze branches accurately
 
-      - name: SAST - SonarQube Analysis
-        run: |
-          echo "Running SonarQube Scanner..."
-          # Running the SonarScanner CLI via Docker. It relies on GitHub Secrets for Auth and Host URL.
-          docker run --rm -v $(pwd):/usr/src \
-            -e SONAR_HOST_URL=${{ secrets.SONAR_HOST_URL }} \
-            -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
-            sonarsource/sonar-scanner-cli \
-            -Dsonar.projectKey=$SONAR_PROJECT_KEY \
-            -Dsonar.sources=./backend/src
+      - name: SAST - SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Your SonarCloud token
 
       - name: Build Docker Image
         run: |
@@ -83,14 +78,4 @@ jobs:
         run: |
           echo "Deployment is handled by ArgoCD syncing the Kubernetes manifests."
           echo "Updating K8s manifests with new image tag..."
-          
-          # Update the image tag in the deployment files
-          sed -i "s|image: $DOCKER_IMAGE:.*|image: $DOCKER_IMAGE:${{ github.run_number }}|g" k8s/deployment-blue.yaml
-          sed -i "s|image: $DOCKER_IMAGE:.*|image: $DOCKER_IMAGE:${{ github.run_number }}|g" k8s/deployment-green.yaml
-          
-          # Commit the changes back to the repository to trigger ArgoCD
-          git config --global user.name 'GitHub Actions Bot'
-          git config --global user.email 'actions@github.com'
-          git add k8s/deployment-blue.yaml k8s/deployment-green.yaml
-          git commit -m "chore(cd): update k8s manifests to image tag ${{ github.run_number }}" || echo "No changes to commit"
-          git push
+          # Practice: Commit new image tag to Git repo to trigger ArgoCD sync
