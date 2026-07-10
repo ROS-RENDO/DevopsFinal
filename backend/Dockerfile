@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm ci --ignore-scripts
 
-# Generate Prisma Client
+# Generate Prisma Client (we purposefully don't copy prisma.config.ts here so it doesn't require env vars during build)
 COPY prisma ./prisma/
 RUN npx prisma generate
 
