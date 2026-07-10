@@ -83,7 +83,6 @@ jobs:
           MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           EOF
-          cp .env backend/.env
           docker compose -f docker-compose.yml up -d --build
 
           echo "Waiting for backend to become healthy..."
@@ -131,50 +130,50 @@ jobs:
   # =========================================================
   # JOB 3 — Build, scan, and push images (main branch only)
   # =========================================================
-  build-and-push:
-    name: Build & Push Images
-    needs: integration-and-dast
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # build-and-push:
+  #   name: Build & Push Images
+  #   needs: integration-and-dast
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Set image metadata
-        id: meta
-        run: |
-          REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          echo "repo=$REPO_NAME" >> "$GITHUB_OUTPUT"
-          echo "sha_tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+  #     - name: Set image metadata
+  #       id: meta
+  #       run: |
+  #         REPO_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+  #         echo "repo=$REPO_NAME" >> "$GITHUB_OUTPUT"
+  #         echo "sha_tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
-      - name: Build backend image
-        run: |
-          docker build -t $REGISTRY/${{ steps.meta.outputs.repo }}/backend:${{ steps.meta.outputs.sha_tag }} backend
+  #     - name: Build backend image
+  #       run: |
+  #         docker build -t $REGISTRY/${{ steps.meta.outputs.repo }}/backend:${{ steps.meta.outputs.sha_tag }} backend
 
-      - name: Build frontend image
-        run: |
-          docker build -t $REGISTRY/${{ steps.meta.outputs.repo }}/frontend:${{ steps.meta.outputs.sha_tag }} frontend
+  #     - name: Build frontend image
+  #       run: |
+  #         docker build -t $REGISTRY/${{ steps.meta.outputs.repo }}/frontend:${{ steps.meta.outputs.sha_tag }} frontend
 
 
-      - name: Push images to GHCR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/backend-ts'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "$GITHUB_TOKEN" | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
+  #     - name: Push images to GHCR
+  #       if: github.event_name == 'push' && github.ref == 'refs/heads/backend-ts'
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       run: |
+  #         echo "$GITHUB_TOKEN" | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
 
-          REPO=${{ steps.meta.outputs.repo }}
-          SHA_TAG=${{ steps.meta.outputs.sha_tag }}
+  #         REPO=${{ steps.meta.outputs.repo }}
+  #         SHA_TAG=${{ steps.meta.outputs.sha_tag }}
 
-          docker tag $REGISTRY/$REPO/backend:$SHA_TAG $REGISTRY/$REPO/backend:latest
-          docker tag $REGISTRY/$REPO/frontend:$SHA_TAG $REGISTRY/$REPO/frontend:latest
+  #         docker tag $REGISTRY/$REPO/backend:$SHA_TAG $REGISTRY/$REPO/backend:latest
+  #         docker tag $REGISTRY/$REPO/frontend:$SHA_TAG $REGISTRY/$REPO/frontend:latest
 
-          docker push $REGISTRY/$REPO/backend:$SHA_TAG
-          docker push $REGISTRY/$REPO/backend:latest
-          docker push $REGISTRY/$REPO/frontend:$SHA_TAG
-          docker push $REGISTRY/$REPO/frontend:latest
+  #         docker push $REGISTRY/$REPO/backend:$SHA_TAG
+  #         docker push $REGISTRY/$REPO/backend:latest
+  #         docker push $REGISTRY/$REPO/frontend:$SHA_TAG
+  #         docker push $REGISTRY/$REPO/frontend:latest
 
       # No automated deploy job here — for the tunnel workflow, deployment is a
       # manual/local step: pull the image on your machine, `docker compose up`,
