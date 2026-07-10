@@ -1,0 +1,34 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log
+yarn-error.log
+
+# SSL certificates and keys
+*.key
+*.crt
+*.pem
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# READMEs
+*.md
+
+# Backups
+backups/
