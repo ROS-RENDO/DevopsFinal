@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Zap, ShieldCheck, ArrowRight } from 'lucide-react';
+import { apiRequest } from '../../lib/api';
 
 export default function MFAPage() {
+  const navigate = useNavigate();
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -59,6 +61,10 @@ export default function MFAPage() {
 
       if (!response.ok) {
         throw new Error(data?.message || data?.error || 'Verification failed');
+      }
+
+      if (!data?.data) {
+        throw new Error(data?.message || 'Verification failed — unexpected response from server');
       }
 
       localStorage.setItem('token', data.token);

@@ -3,6 +3,7 @@ import LandingPage from './pages/public/LandingPage';
 import LoginPage from './pages/public/LoginPage';
 import RegisterPage from './pages/public/RegisterPage';
 import MFAPage from './pages/public/MFAPage';
+import AccountPage from './pages/public/AccountPage';
 
 import WorkerDashboard from './pages/worker/WorkerDashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -16,6 +17,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/mfa" element={<MFAPage />} />
+        <Route path="/account" element={<AccountPage />} />
         
 
         {/* Worker Routes */}

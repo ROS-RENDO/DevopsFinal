@@ -46,11 +46,6 @@ export const requestMfaCode = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    if (!user.mfaEnabled) {
-      res.status(400).json({ status: 'error', message: 'MFA is not enabled for this account' });
-      return;
-    }
-
     const code = generateMfaCode();
     const expiresAt = new Date(Date.now() + MFA_EXPIRATION_MINUTES * 60_000);
 
@@ -112,7 +107,7 @@ export const verifyMfaCode = async (req: Request, res: Response): Promise<void> 
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -128,5 +123,70 @@ export const verifyMfaCode = async (req: Request, res: Response): Promise<void> 
   } catch (error) {
     logSecurityEvent('auth.mfa_verify_error', { error: error instanceof Error ? error.message : 'unknown', ip: req.ip }, 'error');
     res.status(500).json({ status: 'error', message: 'Unable to verify MFA code' });
+  }
+};
+export const enableMfa = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ status: 'error', message: 'Unauthorized' });
+      return;
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { mfaEnabled: true },
+    });
+
+    logSecurityEvent('auth.mfa_enabled', { userId, ip: req.ip });
+    res.json({ status: 'success', message: 'MFA has been enabled for your account' });
+  } catch (error) {
+    logSecurityEvent('auth.mfa_enable_error', { error: error instanceof Error ? error.message : 'unknown' }, 'error');
+    res.status(500).json({ status: 'error', message: 'Unable to enable MFA' });
+  }
+};
+
+export const disableMfa = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ status: 'error', message: 'Unauthorized' });
+      return;
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { mfaEnabled: false, mfaCode: null, mfaExpiresAt: null },
+    });
+
+    logSecurityEvent('auth.mfa_disabled', { userId, ip: req.ip });
+    res.json({ status: 'success', message: 'MFA has been disabled for your account' });
+  } catch (error) {
+    logSecurityEvent('auth.mfa_disable_error', { error: error instanceof Error ? error.message : 'unknown' }, 'error');
+    res.status(500).json({ status: 'error', message: 'Unable to disable MFA' });
+  }
+};
+
+export const getMfaStatus = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ status: 'error', message: 'Unauthorized' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { mfaEnabled: true, email: true },
+    });
+
+    if (!user) {
+      res.status(404).json({ status: 'error', message: 'User not found' });
+      return;
+    }
+
+    res.json({ status: 'success', data: { mfaEnabled: user.mfaEnabled, email: user.email } });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Unable to get MFA status' });
   }
 };
