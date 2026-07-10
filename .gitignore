@@ -27,3 +27,8 @@ Thumbs.db
 .vscode/
 .idea/
 
+# READMEs
+*.md
+
+# Backups
+backups/
