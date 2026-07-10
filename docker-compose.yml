@@ -36,16 +36,11 @@ services:
     env_file:
       - ./.env
     environment:
-<<<<<<< HEAD
-      DATABASE_URL: mysql://${MYSQL_USER:-servd}:${MYSQL_PASSWORD:-servdpass}@db:3306/${MYSQL_DATABASE:-servd}?connection_limit=5
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
-=======
       DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}?connection_limit=5
       FRONTEND_URL: ${FRONTEND_URL}
       JWT_SECRET: ${JWT_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       AUTH_TOKEN_ENCRYPTION_KEY: ${AUTH_TOKEN_ENCRYPTION_KEY}
->>>>>>> 28b8230e51a2b6543d890bc3004b1cf63ab00ad7
     depends_on:
       db:
         condition: service_healthy
