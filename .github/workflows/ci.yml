@@ -85,6 +85,8 @@ jobs:
           MYSQL_USER=${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}
+          AUTH_TOKEN_ENCRYPTION_KEY=${{ secrets.AUTH_TOKEN_ENCRYPTION_KEY }}
           EOF
           docker compose -f docker-compose.yml up -d --build
 
