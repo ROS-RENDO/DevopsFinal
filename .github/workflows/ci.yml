@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - rendo
+      - dev
   pull_request:
     branches:
       - main
       - rendo
+      - dev
 
 env:
   DOCKER_IMAGE: "rosrendo/devops-final-backend"
