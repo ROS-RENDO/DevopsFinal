@@ -59,9 +59,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=DevSec_Final
-            -Dsonar.organization=camtech
-            -Dsonar.sources=.
+            -Dsonar.projectKey=sihacny_devsecfinal
+            -Dsonar.organization=sihacny
             -Dsonar.exclusions=**/node_modules/**,**/dist/**
 
 #   # =========================================================
