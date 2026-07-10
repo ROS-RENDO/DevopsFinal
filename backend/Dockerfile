@@ -15,6 +15,10 @@ RUN npx prisma generate
 COPY . .
 RUN npm run build
 
+# Prepare a clean release bundle so we can use a single COPY instruction later
+RUN mkdir /release && \
+    cp -a package*.json node_modules dist prisma prisma.config.ts /release/
+
 # Stage 2: Secure Production Environment
 FROM node:24-alpine
 
@@ -23,13 +27,8 @@ WORKDIR /usr/src/app
 # Run as non-root user for security (SonarCloud Best Practice)
 USER node
 
-# Combine COPY instructions into a single layer to reduce image bloat
-COPY --from=builder --chown=node:node \
-    /usr/src/app/package*.json \
-    /usr/src/app/node_modules \
-    /usr/src/app/dist \
-    /usr/src/app/prisma \
-    ./
+# Combine COPY instructions into a single layer by copying the prepared release bundle
+COPY --from=builder --chown=node:node /release ./
 
 EXPOSE 3000
 
