@@ -3,6 +3,15 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../utils/db.js';
 
+const ALLOWED_ROLES = ['customer', 'worker', 'admin'] as const;
+
+const normalizeRole = (role?: string): string => {
+  const normalizedRole = (role || 'customer').toLowerCase();
+  return ALLOWED_ROLES.includes(normalizedRole as (typeof ALLOWED_ROLES)[number])
+    ? normalizedRole
+    : 'customer';
+};
+
 const generateToken = (user: { id: number; email: string; role: string }) => {
   const secret = process.env.JWT_SECRET || 'your_super_secret_jwt_key_here';
   return jwt.sign({ id: user.id, email: user.email, role: user.role }, secret, {
@@ -32,13 +41,15 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    const normalizedRole = normalizeRole(role);
+
     // Create user
     const newUser = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         name,
-        role: role || 'customer',
+        role: normalizedRole,
       },
     });
 
@@ -71,9 +82,18 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    const normalizedRole = normalizeRole(user.role);
+
+    if (normalizedRole !== user.role) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { role: normalizedRole },
+      });
+    }
+
     // Generate JWTs
-    const token = generateToken(user);
-    const refreshToken = generateRefreshToken(user);
+    const token = generateToken({ ...user, role: normalizedRole });
+    const refreshToken = generateRefreshToken({ ...user, role: normalizedRole });
 
     // Save refresh token in DB
     await prisma.user.update({
@@ -93,7 +113,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       status: 'success',
       message: 'Logged in successfully',
       token,
-      data: { id: user.id, email: user.email, role: user.role },
+      data: { id: user.id, email: user.email, role: normalizedRole },
     });
   } catch (error) {
     console.error('Login error:', error);
