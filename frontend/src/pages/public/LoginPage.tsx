@@ -24,6 +24,11 @@ export default function LoginPage() {
 
       if (!response.ok) throw new Error(data?.message || data?.error || 'Login failed');
 
+      if (data.requiresMfa) {
+        navigate('/mfa', { state: { email: data.email } });
+        return;
+      }
+
       const params = new URLSearchParams(location.search);
       const redirect = params.get('redirect');
 
