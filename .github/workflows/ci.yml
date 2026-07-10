@@ -80,13 +80,13 @@ jobs:
       - name: Start application stack
         run: |
           cat <<EOF > .env
-          MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
-          MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
-          MYSQL_USER=${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}
-          AUTH_TOKEN_ENCRYPTION_KEY=${{ secrets.AUTH_TOKEN_ENCRYPTION_KEY }}
+          MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD || 'root' }}
+          MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE || 'test_db' }}
+          MYSQL_USER=${{ secrets.MYSQL_USER || 'test_user' }}
+          MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD || 'test_pass' }}
+          JWT_SECRET=${{ secrets.JWT_SECRET || 'test_jwt_secret_key_123' }}
+          JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET || 'test_jwt_refresh_secret_key_456' }}
+          AUTH_TOKEN_ENCRYPTION_KEY=${{ secrets.AUTH_TOKEN_ENCRYPTION_KEY || 'test_encryption_key_must_be_long_enough' }}
           EOF
           docker compose -f docker-compose.yml up -d --build
 
