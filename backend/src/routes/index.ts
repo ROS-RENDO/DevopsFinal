@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import authRoutes from './auth.routes.js';
+import bookingRoutes from './booking.routes.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
 router.use('/auth', authRoutes);
+router.use('/bookings', bookingRoutes);
 
 // Example of a protected route
 router.get('/protected', authenticate, (req, res) => {

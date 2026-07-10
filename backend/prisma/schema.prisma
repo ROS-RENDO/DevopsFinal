@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -15,4 +16,20 @@ model User {
   refreshToken String? @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  bookingsAsCustomer Booking[] @relation("CustomerBookings")
+  bookingsAsWorker   Booking[] @relation("WorkerBookings")
+}
+
+model Booking {
+  id             Int      @id @default(autoincrement())
+  customerId     Int
+  workerId       Int?     // Nullable, assigned when a worker accepts
+  serviceDetails String   @db.Text
+  status         String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  customer       User     @relation("CustomerBookings", fields: [customerId], references: [id])
+  worker         User?    @relation("WorkerBookings", fields: [workerId], references: [id])
 }

@@ -43,3 +43,16 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
     return;
   }
 };
+
+export const authorizeRoles = (...allowedRoles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user || !allowedRoles.includes(req.user.role)) {
+      res.status(403).json({
+        status: 'error',
+        message: 'Forbidden - You do not have permission to access this resource',
+      });
+      return;
+    }
+    next();
+  };
+};
