@@ -43,25 +43,67 @@ export default function MFAPage() {
       return;
     }
 
+    if (!state.email) {
+      setError('Missing email to verify MFA');
+      return;
+    }
+
     setError('');
     setLoading(true);
 
     try {
-      if (state.tempToken) {
-        setError('MFA is not enabled in the current backend configuration.');
-      } else {
-        setError('MFA is not enabled in the current backend configuration.');
+      const { response, data } = await apiRequest('/mfa/verify', {
+        method: 'POST',
+        body: JSON.stringify({ email: state.email, code: fullCode }),
+      });
+
+      if (!response.ok) {
+        throw new Error(data?.message || data?.error || 'Verification failed');
       }
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.data));
+
+      switch (data.data.role) {
+        case 'worker':
+          navigate('/worker');
+          break;
+        case 'admin':
+          navigate('/admin');
+          break;
+        default:
+          navigate('/');
+      }
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   const resendCode = async () => {
+    if (!state.email) {
+      setError('Missing email to resend code');
+      return;
+    }
+
     try {
-      setError('MFA is not enabled in the current backend configuration.');
+      setLoading(true);
+      setError('');
+      const { response, data } = await apiRequest('/mfa/request', {
+        method: 'POST',
+        body: JSON.stringify({ email: state.email }),
+      });
+
+      if (!response.ok) {
+        throw new Error(data?.message || data?.error || 'Unable to resend code');
+      }
+
+      setError('Verification code resent to your email.');
     } catch (err: any) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 

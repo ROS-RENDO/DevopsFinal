@@ -1,8 +1,10 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import prisma from '../utils/db.js';
 import { encryptText, decryptText } from '../utils/crypto.js';
+import { sendMfaEmail } from '../utils/smtp/index.js';
 import { logSecurityEvent } from '../utils/logger.js';
 
 const ALLOWED_ROLES = ['customer', 'worker', 'admin'] as const;
@@ -34,6 +36,10 @@ const generateRefreshToken = (user: { id: number; email: string; role: string })
   return jwt.sign({ id: user.id, email: user.email, role: user.role }, secret, {
     expiresIn: '7d',
   });
+};
+
+const generateMfaCode = (): string => {
+  return crypto.randomInt(0, 10 ** 6).toString().padStart(6, '0');
 };
 
 export const register = async (req: Request, res: Response): Promise<void> => {
@@ -106,9 +112,33 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       });
     }
 
+    if (user.mfaEnabled) {
+      const code = generateMfaCode();
+      const expiresAt = new Date(Date.now() + 10 * 60_000);
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          mfaCode: code,
+          mfaExpiresAt: expiresAt,
+        },
+      });
+
+      await sendMfaEmail(user.email, code);
+      logSecurityEvent('auth.mfa_sent_on_login', { userId: user.id, email: user.email, ip: req.ip });
+
+      res.json({
+        status: 'success',
+        requiresMfa: true,
+        message: 'MFA code sent to your email',
+        email: user.email,
+      });
+      return;
+    }
+
     // Generate JWTs
-    const token = generateToken({ ...user, role: normalizedRole });
-    const refreshToken = generateRefreshToken({ ...user, role: normalizedRole });
+    const token = generateToken({ id: user.id, email: user.email, role: normalizedRole });
+    const refreshToken = generateRefreshToken({ id: user.id, email: user.email, role: normalizedRole });
 
     const encryptedRefreshToken = encryptText(refreshToken);
 

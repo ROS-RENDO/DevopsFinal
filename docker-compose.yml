@@ -4,10 +4,10 @@ services:
     env_file:
       - ./.env
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-servd}
-      MYSQL_USER: ${MYSQL_USER:-servd}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-servdpass}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     volumes:
@@ -27,11 +27,11 @@ services:
     env_file:
       - ./.env
     environment:
-      DATABASE_URL: mysql://${MYSQL_USER:-servd}:${MYSQL_PASSWORD:-servdpass}@db:3306/${MYSQL_DATABASE:-servd}?connection_limit=5
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
-      JWT_SECRET: ${JWT_SECRET:-replace-with-long-random-secret}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-replace-with-long-random-refresh-secret}
-      AUTH_TOKEN_ENCRYPTION_KEY: ${AUTH_TOKEN_ENCRYPTION_KEY:-replace-with-32-byte-key}
+      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}?connection_limit=5
+      FRONTEND_URL: ${FRONTEND_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      AUTH_TOKEN_ENCRYPTION_KEY: ${AUTH_TOKEN_ENCRYPTION_KEY}
     depends_on:
       db:
         condition: service_healthy
@@ -42,7 +42,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "${FRONTEND_PORT:-5173}:80"
+      - "${FRONTEND_PORT}:80"
     depends_on:
       - backend
 
