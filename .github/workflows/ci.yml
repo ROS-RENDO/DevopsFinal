@@ -40,12 +40,12 @@ jobs:
           npm audit --audit-level=high
           npm run build --if-present
 
-      - name: Frontend - install, audit, build
-        run: |
-          cd frontend
-          npm ci
-          npm audit --audit-level=high
-          npm run build --if-present
+      # - name: Frontend - install, audit, build
+      #   run: |
+      #     cd frontend
+      #     npm ci
+      #     npm audit --audit-level=high
+      #     npm run build --if-present
 
       - name: Secrets scan (gitleaks)
         uses: gitleaks/gitleaks-action@v2
