@@ -1,13 +1,9 @@
 services:
-  # frontend:
-  #   image: ghcr.io/${GHCR_REPO}/frontend:latest
-  #   expose:
-  #     - "80"
-  #   # add depends_on and other configs as needed when frontend is ready
-
+  
   db:
     image: mysql:8.0
-    env_file: ./backend/.env
+    env_file:
+      - ./.env
     ports:
       - "3306:3306"
     volumes:
@@ -21,22 +17,33 @@ services:
           cpus: "0.5"
           memory: 256M
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+
+  frontend:
+    image: ghcr.io/${GHCR_REPO}/frontend:latest
+    expose:
+      - "80"
+    depends_on:
+      - backend-blue
 
   backend-blue:
     image: ghcr.io/${GHCR_REPO}/backend:latest
     expose:
       - "3000"
-    env_file: ./backend/.env
+    env_file:
+      - ./.env
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-servd}:${MYSQL_PASSWORD:-servdpass}@db:3306/${MYSQL_DATABASE:-servd}?connection_limit=5
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     depends_on:
       db:
         condition: service_healthy
     command: sh -c "npx prisma db push && npm start"
     deploy:
-      replicas: 3
+      replicas: 1
       resources:
         limits:
           cpus: "1.0"
@@ -49,7 +56,11 @@ services:
     image: ghcr.io/${GHCR_REPO}/backend:latest
     expose:
       - "3000"
-    env_file: ./backend/.env
+    env_file:
+      - ./.env
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-servd}:${MYSQL_PASSWORD:-servdpass}@db:3306/${MYSQL_DATABASE:-servd}?connection_limit=5
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     depends_on:
       db:
         condition: service_healthy

@@ -1,12 +1,4 @@
 services:
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   expose:
-  #     - "80"
-  #   # add depends_on and other configs as needed when frontend is ready
-
 
   db:
     image: mysql:8.0
@@ -89,6 +81,16 @@ services:
       dockerfile: Dockerfile
     ports:
       - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      - backend-blue
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
     depends_on:
       - backend-blue
 

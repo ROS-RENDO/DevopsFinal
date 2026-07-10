@@ -24,12 +24,12 @@ jobs:
       security-events: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@e8d4307400f9427dba7cb98e488d6ab85f1cec5f
         with:
           fetch-depth: 0   # SonarCloud wants full history
 
       - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        uses: actions/setup-node@04be95cf3511ea51ebf9f224ddfb99cc7ab87cd4
         with:
           node-version: '24'
 
@@ -48,7 +48,7 @@ jobs:
           npm run build --if-present
 
       - name: Secrets scan (gitleaks)
-        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
+        uses: gitleaks/gitleaks-action@961680e5305a30eb575f3ddf6bb6b2e265b68f0a
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -75,7 +75,7 @@ jobs:
       issues: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@e8d4307400f9427dba7cb98e488d6ab85f1cec5f
 
       - name: Start application stack
         run: |
@@ -147,7 +147,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@e8d4307400f9427dba7cb98e488d6ab85f1cec5f
 
       - name: Set image metadata
         id: meta

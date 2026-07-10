@@ -3,7 +3,7 @@
 # A simple blue-green deployment script
 
 # Determine the currently active environment based on nginx config
-if grep -q "proxy_pass http://backend_blue;" nginx/nginx.conf; then
+if grep -q "set \$active_backend \"backend-blue\";" nginx/nginx.conf; then
   ACTIVE="blue"
   INACTIVE="green"
 else
@@ -22,7 +22,7 @@ echo "Waiting for backend-${INACTIVE} to become healthy..."
 sleep 15
 
 # Swap nginx upstream
-sed -i "s/proxy_pass http:\/\/backend_${ACTIVE};/proxy_pass http:\/\/backend_${INACTIVE};/g" nginx/nginx.conf
+sed -i "s/set \$active_backend \"backend-${ACTIVE}\";/set \$active_backend \"backend-${INACTIVE}\";/g" nginx/nginx.conf
 
 # Reload nginx configuration
 docker compose exec nginx nginx -s reload
