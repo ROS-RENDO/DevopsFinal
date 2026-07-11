@@ -32,7 +32,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "${BACKEND_PORT}:3000"
+      - "${BACKEND_PORT}-3005:3000"
     env_file:
       - ./.env
     environment:
