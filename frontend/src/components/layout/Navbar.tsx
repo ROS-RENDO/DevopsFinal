@@ -1,17 +1,21 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Zap, LogOut } from 'lucide-react';
+import { apiRequest } from '../../lib/api';
 
 export default function Navbar() {
   const navigate = useNavigate();
   const userData = localStorage.getItem('user');
   const user = userData ? JSON.parse(userData) : null;
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await apiRequest('/auth/logout', { method: 'POST' });
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
     localStorage.removeItem('user');
-    // Important: In a real app, you would also want to call your backend logout endpoint
-    // to clear the httpOnly cookies. But clearing localStorage is enough for the frontend UI update.
+    localStorage.removeItem('token');
     navigate('/login');
-    // Refresh the page to clear any residual state/cookies if needed
     window.location.reload();
   };
 

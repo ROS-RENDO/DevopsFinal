@@ -2,6 +2,9 @@
 
 # A script to deploy the application locally using GHCR images and expose it via Ngrok
 
+# Change to the project root directory
+cd "$(dirname "$0")/.." || exit 1
+
 # Ensure GHCR_REPO is set (default to the current repository)
 if [ -z "$GHCR_REPO" ]; then
   export GHCR_REPO="ros-rendo/devopsfinal"
