@@ -186,7 +186,7 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
   // Clear cookie
   res.cookie('refreshToken', '', {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     expires: new Date(0),
   });
