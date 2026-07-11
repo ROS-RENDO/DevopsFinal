@@ -171,28 +171,35 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const logout = async (req: Request, res: Response): Promise<void> => {
+  console.log('[LOGOUT API] Received logout request');
   try {
     // If we have a user in req (from auth middleware), remove their token in DB
     if (req.user?.id) {
+      console.log('[LOGOUT API] User found, clearing refresh token in DB for user id:', req.user.id);
       await prisma.user.update({
         where: { id: req.user.id },
         data: { refreshToken: null },
       });
+    } else {
+      console.log('[LOGOUT API] No req.user.id found in request');
     }
   } catch (error) {
     console.error('Logout error updating DB:', error);
   }
 
   // Clear cookie
+  const isProd = process.env.NODE_ENV === 'production';
+  console.log(`[LOGOUT API] Clearing cookie. isProd=${isProd}, secureFlag=${isProd}`);
   res.cookie('refreshToken', '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProd,
     sameSite: 'strict',
     expires: new Date(0),
   });
 
   logSecurityEvent('auth.logout', { userId: req.user?.id, ip: req.ip });
 
+  console.log('[LOGOUT API] Successfully finished logout logic');
   res.json({ status: 'success', message: 'Logged out successfully' });
 };
 

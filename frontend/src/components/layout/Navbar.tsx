@@ -8,11 +8,14 @@ export default function Navbar() {
   const user = userData ? JSON.parse(userData) : null;
 
   const handleLogout = async () => {
+    console.log('[FRONTEND] handleLogout clicked! Calling backend API...');
     try {
-      await apiRequest('/auth/logout', { method: 'POST' });
+      const result = await apiRequest('/auth/logout', { method: 'POST' });
+      console.log('[FRONTEND] API call finished. Result:', result);
     } catch (e) {
-      console.error('Logout error:', e);
+      console.error('[FRONTEND] Logout API error:', e);
     }
+    console.log('[FRONTEND] Clearing local storage and navigating away');
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     navigate('/login');
