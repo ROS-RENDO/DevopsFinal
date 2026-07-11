@@ -225,7 +225,7 @@ export default function LandingPage() {
                   </div>
                   <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{user.name}</span>
                 </div>
-                <button onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('user'); setUser(null); }} style={{ fontSize: '0.85rem', fontWeight: 600, color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Log out</button>
+                <button onClick={async () => { await apiRequest('/auth/logout', { method: 'POST' }).catch(() => {}); localStorage.removeItem('token'); localStorage.removeItem('user'); setUser(null); }} style={{ fontSize: '0.85rem', fontWeight: 600, color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Log out</button>
               </div>
             ) : (
               <>
