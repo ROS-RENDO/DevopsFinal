@@ -66,7 +66,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: sh -c "npx prisma db push && npm start"
+    command: sh -c "npx prisma db push || (echo 'Retrying...' && sleep 5 && npx prisma db push) && npm start"
     profiles: ["green"]
     deploy:
       replicas: 3
