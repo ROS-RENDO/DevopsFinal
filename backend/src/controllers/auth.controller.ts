@@ -188,13 +188,10 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
   }
 
   // Clear cookie
-  const isProd = process.env.NODE_ENV === 'production';
-  console.log(`[LOGOUT API] Clearing cookie. isProd=${isProd}, secureFlag=${isProd}`);
-  res.cookie('refreshToken', '', {
+  res.clearCookie('refreshToken', {
     httpOnly: true,
-    secure: isProd,
+    secure: true,
     sameSite: 'strict',
-    expires: new Date(0),
   });
 
   logSecurityEvent('auth.logout', { userId: req.user?.id, ip: req.ip });
