@@ -153,6 +153,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -190,8 +191,9 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
   // Clear cookie
   res.clearCookie('refreshToken', {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
+    path: '/',
   });
 
   logSecurityEvent('auth.logout', { userId: req.user?.id, ip: req.ip });
