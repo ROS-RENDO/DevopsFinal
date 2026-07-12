@@ -49,7 +49,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      logSecurityEvent('auth.register_conflict', { email }, 'warn');
+      logSecurityEvent('auth.register_conflict', { email }, 'warning');
       res.status(400).json({ status: 'error', message: 'User already exists with this email' });
       return;
     }
@@ -90,7 +90,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Find user
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      logSecurityEvent('auth.login_failed', { email, reason: 'user_not_found', ip: req.ip }, 'warn');
+      logSecurityEvent('auth.login_failed', { email, reason: 'user_not_found', ip: req.ip }, 'warning');
       res.status(401).json({ status: 'error', message: 'Invalid credentials' });
       return;
     }
@@ -98,7 +98,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      logSecurityEvent('auth.login_failed', { email, reason: 'invalid_password', ip: req.ip }, 'warn');
+      logSecurityEvent('auth.login_failed', { email, reason: 'invalid_password', ip: req.ip }, 'error');
       res.status(401).json({ status: 'error', message: 'Invalid credentials' });
       return;
     }
@@ -216,14 +216,14 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
     // Find user and check if token matches the DB
     const user = await prisma.user.findUnique({ where: { id: decoded.id } });
     if (!user || !user.refreshToken) {
-      logSecurityEvent('auth.refresh_rejected', { userId: decoded.id, ip: req.ip }, 'warn');
+      logSecurityEvent('auth.refresh_rejected', { userId: decoded.id, ip: req.ip }, 'warning');
       res.status(403).json({ status: 'error', message: 'Forbidden' });
       return;
     }
 
     const storedToken = decryptText(user.refreshToken);
     if (storedToken !== token) {
-      logSecurityEvent('auth.refresh_rejected', { userId: decoded.id, ip: req.ip }, 'warn');
+      logSecurityEvent('auth.refresh_rejected', { userId: decoded.id, ip: req.ip }, 'warning');
       res.status(403).json({ status: 'error', message: 'Forbidden' });
       return;
     }
@@ -236,7 +236,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       token: newToken,
     });
   } catch (error) {
-    logSecurityEvent('auth.refresh_error', { error: error instanceof Error ? error.message : 'unknown', ip: req.ip }, 'warn');
+    logSecurityEvent('auth.refresh_error', { error: error instanceof Error ? error.message : 'unknown', ip: req.ip }, 'error');
     res.status(403).json({ status: 'error', message: 'Forbidden' });
   }
 };
