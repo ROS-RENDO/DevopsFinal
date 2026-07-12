@@ -24,7 +24,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
     const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
 
     if (!token) {
-      logSecurityEvent('auth.missing_token', { ip: req.ip, path: req.originalUrl }, 'warn');
+      logSecurityEvent('auth.missing_token', { ip: req.ip, path: req.originalUrl }, 'warning');
       res.status(401).json({
         status: 'error',
         message: 'Unauthorized',
@@ -44,7 +44,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
     req.user = decoded;
     next();
   } catch (error) {
-    logSecurityEvent('auth.invalid_token', { ip: req.ip, path: req.originalUrl, error: error instanceof Error ? error.message : 'unknown' }, 'warn');
+    logSecurityEvent('auth.invalid_token', { ip: req.ip, path: req.originalUrl, error: error instanceof Error ? error.message : 'unknown' }, 'warning');
     res.status(401).json({
       status: 'error',
       message: 'Unauthorized',
@@ -55,7 +55,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
 export const authorizeRoles = (...allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      logSecurityEvent('auth.unauthorized_no_user', { ip: req.ip, path: req.originalUrl }, 'warn');
+      logSecurityEvent('auth.unauthorized_no_user', { ip: req.ip, path: req.originalUrl }, 'warning');
       res.status(401).json({ status: 'error', message: 'Unauthorized' });
       return;
     }
@@ -67,7 +67,7 @@ export const authorizeRoles = (...allowedRoles: string[]) => {
         role: req.user.role,
         path: req.originalUrl,
         allowedRoles,
-      }, 'warn');
+      }, 'warning');
       res.status(403).json({
         status: 'error',
         message: 'Forbidden',

@@ -41,7 +41,7 @@ export const requestMfaCode = async (req: Request, res: Response): Promise<void>
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
-      logSecurityEvent('auth.mfa_request_user_not_found', { email, ip: req.ip }, 'warn');
+      logSecurityEvent('auth.mfa_request_user_not_found', { email, ip: req.ip }, 'warning');
       res.status(404).json({ status: 'error', message: 'User not found' });
       return;
     }
@@ -74,20 +74,20 @@ export const verifyMfaCode = async (req: Request, res: Response): Promise<void> 
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user || !user.mfaCode || !user.mfaExpiresAt) {
-      logSecurityEvent('auth.mfa_verify_invalid', { email, ip: req.ip }, 'warn');
+      logSecurityEvent('auth.mfa_verify_invalid', { email, ip: req.ip }, 'warning');
       res.status(400).json({ status: 'error', message: 'Invalid or expired MFA code' });
       return;
     }
 
     if (user.mfaExpiresAt < new Date()) {
       await prisma.user.update({ where: { id: user.id }, data: { mfaCode: null, mfaExpiresAt: null } });
-      logSecurityEvent('auth.mfa_verify_expired', { userId: user.id, email, ip: req.ip }, 'warn');
+      logSecurityEvent('auth.mfa_verify_expired', { userId: user.id, email, ip: req.ip }, 'warning');
       res.status(400).json({ status: 'error', message: 'Invalid or expired MFA code' });
       return;
     }
 
     if (user.mfaCode !== code) {
-      logSecurityEvent('auth.mfa_verify_wrong_code', { userId: user.id, email, ip: req.ip }, 'warn');
+      logSecurityEvent('auth.mfa_verify_wrong_code', { userId: user.id, email, ip: req.ip }, 'warning');
       res.status(400).json({ status: 'error', message: 'Invalid or expired MFA code' });
       return;
     }

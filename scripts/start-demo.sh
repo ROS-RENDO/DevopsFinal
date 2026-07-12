@@ -37,7 +37,7 @@ sleep 15
 sed -i "s/set \$active_backend \"backend-${ACTIVE}\";/set \$active_backend \"backend-${INACTIVE}\";/g" nginx/nginx.conf
 
 # Ensure nginx is running
-GHCR_REPO="$GHCR_REPO" docker compose -f docker-compose.prod.yml up -d nginx
+GHCR_REPO="$GHCR_REPO" docker compose -f docker-compose.prod.yml up -d nginx loki grafana
 
 # Copy the updated Nginx config into the container (since it's baked into the image)
 GHCR_REPO="$GHCR_REPO" docker compose -f docker-compose.prod.yml cp nginx/nginx.conf nginx:/etc/nginx/conf.d/default.conf

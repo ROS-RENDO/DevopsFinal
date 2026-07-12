@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import apiRoutes from './routes/index.js';
+import { log } from './utils/logger.js';
 
 dotenv.config();
 
@@ -12,6 +13,12 @@ const port = process.env.PORT || 3000;
 
 // Trust proxy if you are behind Nginx
 app.set('trust proxy', 1);
+
+// Global Access Logger (Captures ALL traffic including malicious bots)
+app.use((req, res, next) => {
+  log.info(`Incoming HTTP Request: ${req.method} ${req.url}`, { ip: req.ip, method: req.method, url: req.url, userAgent: req.headers['user-agent'] });
+  next();
+});
 
 // Middleware
 app.use(helmet());
@@ -118,10 +125,10 @@ app.get('/sitemap.xml', (req, res) => {
 
 // Global error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
+  log.error(`Unhandled Exception: ${err.message}`, { error: err.message, stack: err.stack, ip: req.ip, url: req.url });
   res.status(500).json({ status: 'error', message: 'Something went wrong!' });
 });
 
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  log.info(`Server is running on http://localhost:${port}`);
 });
