@@ -4,7 +4,7 @@ export const registerSchema = z.object({
   body: z.object({
     email: z.string().email('Invalid email address'),
     password: z.string().min(6, 'Password must be at least 6 characters long'),
-    name: z.string().optional(),
+    name: z.string().regex(/^[a-zA-Z0-9\s\-_\.\']+$/, 'Name contains invalid characters').optional(),
     role: z.enum(['customer', 'company', 'worker', 'admin']).optional(),
   }),
 });
