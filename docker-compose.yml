@@ -36,6 +36,7 @@ services:
     env_file:
       - ./.env
     environment:
+      TZ: Asia/Phnom_Penh
       DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}?connection_limit=5
       FRONTEND_URL: ${FRONTEND_URL}
       JWT_SECRET: ${JWT_SECRET}
@@ -63,6 +64,13 @@ services:
       - "3000"
     env_file:
       - ./.env
+    environment:
+      TZ: Asia/Phnom_Penh
+      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}?connection_limit=5
+      FRONTEND_URL: ${FRONTEND_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      AUTH_TOKEN_ENCRYPTION_KEY: ${AUTH_TOKEN_ENCRYPTION_KEY}
     depends_on:
       db:
         condition: service_healthy
