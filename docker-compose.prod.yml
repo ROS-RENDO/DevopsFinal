@@ -43,7 +43,7 @@ services:
         condition: service_healthy
     command: sh -c "until npx prisma db push; do echo 'Retrying prisma...'; sleep 5; done && npm start"
     deploy:
-      replicas: 1
+      replicas: 2
       resources:
         limits:
           cpus: "1.0"
