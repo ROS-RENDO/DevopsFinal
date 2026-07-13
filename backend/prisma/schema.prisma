@@ -28,8 +28,9 @@ model Booking {
   id             Int      @id @default(autoincrement())
   customerId     Int
   workerId       Int?     // Nullable, assigned when a worker accepts
-  serviceDetails String   @db.Text
-  status         String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  serviceDetails      String   @db.Text
+  specialInstructions String?  @db.Text
+  status              String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

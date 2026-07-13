@@ -2,7 +2,12 @@ import { z } from 'zod';
 
 export const createBookingSchema = z.object({
   body: z.object({
-    serviceDetails: z.string().min(10, 'Please provide more details about the service required'),
+    serviceDetails: z.string()
+      .min(10, 'Please provide more details about the service required')
+      .regex(/^[^<>]*$/, 'Special characters < and > are not allowed to prevent XSS'),
+    specialInstructions: z.string()
+      .regex(/^[^<>]*$/, 'Special characters < and > are not allowed to prevent XSS')
+      .optional(),
   }),
 });
 

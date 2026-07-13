@@ -2,12 +2,15 @@ import { Router } from 'express';
 import { authenticate, authorizeRoles } from '../middleware/auth.middleware.js';
 import { validate } from '../middleware/validate.js';
 import { createBookingSchema, updateBookingStatusSchema } from '../schemas/booking.schema.js';
-import { createBooking, updateBookingStatus } from '../controllers/booking.controller.js';
+import { createBooking, updateBookingStatus, getBookings } from '../controllers/booking.controller.js';
 
 const router = Router();
 
 // Ensure all booking routes require authentication
 router.use(authenticate);
+
+// View bookings (Customers see their own, Staff see all)
+router.get('/', getBookings);
 
 // Customers can create bookings
 router.post(

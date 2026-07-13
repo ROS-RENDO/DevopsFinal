@@ -121,7 +121,7 @@ export default function LandingPage() {
       for (const it of cart) {
         const { response } = await apiRequest('/bookings', {
           method: 'POST',
-          body: JSON.stringify({ serviceDetails: `${it.n} — ${it.p}` }),
+          body: JSON.stringify({ serviceDetails: `${it.n} — ${it.p}`, specialInstructions: cartNote }),
         });
         if (!response.ok) throw new Error();
       }

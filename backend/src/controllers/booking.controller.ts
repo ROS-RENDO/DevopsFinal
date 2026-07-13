@@ -3,7 +3,7 @@ import prisma from '../utils/db.js';
 
 export const createBooking = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { serviceDetails } = req.body;
+    const { serviceDetails, specialInstructions } = req.body;
     
     // Ensure only a customer is creating the booking (fallback check, though middleware should handle this)
     if (!req.user || req.user.role !== 'customer') {
@@ -15,6 +15,7 @@ export const createBooking = async (req: Request, res: Response): Promise<void> 
       data: {
         customerId: req.user.id,
         serviceDetails,
+        specialInstructions,
         status: 'PENDING',
       },
     });
@@ -64,6 +65,35 @@ export const updateBookingStatus = async (req: Request, res: Response): Promise<
     });
   } catch (error) {
     console.error('Update booking error:', error);
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+};
+
+export const getBookings = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ status: 'error', message: 'Unauthorized' });
+      return;
+    }
+
+    let bookings;
+    if (req.user.role === 'customer') {
+      bookings = await prisma.booking.findMany({
+        where: { customerId: req.user.id },
+        include: { worker: { select: { name: true, email: true } } },
+      });
+    } else {
+      bookings = await prisma.booking.findMany({
+        include: { customer: { select: { name: true, email: true } } },
+      });
+    }
+
+    res.json({
+      status: 'success',
+      data: bookings,
+    });
+  } catch (error) {
+    console.error('Get bookings error:', error);
     res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
