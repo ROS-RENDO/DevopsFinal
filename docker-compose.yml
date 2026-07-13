@@ -56,6 +56,23 @@ services:
           cpus: "0.25"
           memory: 128M
 
+  db-backup-cron:
+    build:
+      context: ./scripts
+      dockerfile: Dockerfile.backup
+    volumes:
+      - ./backups:/backups
+    environment:
+      MYSQL_HOST: db
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      BACKUP_RETENTION_DAYS: 7
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
   backend-green:
     build:
       context: ./backend

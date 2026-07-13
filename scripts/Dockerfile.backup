@@ -1,0 +1,17 @@
+FROM alpine:3.20
+
+# Install mysql-client for mysqldump and bash for the script
+RUN apk add --no-cache mysql-client bash
+
+# Copy crontab and backup script
+COPY backup-crontab /etc/crontabs/root
+COPY db-backup-cron.sh /scripts/db-backup-cron.sh
+
+# Ensure the script is executable
+RUN chmod +x /scripts/db-backup-cron.sh
+
+# Create log file
+RUN touch /var/log/backup.log
+
+# Run crond in foreground with log level 2 (info)
+CMD ["crond", "-f", "-l", "2"]
