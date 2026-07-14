@@ -91,6 +91,8 @@ services:
     image: grafana/loki:3.0.0
     ports:
       - "3100:3100"
+    environment:
+      - TZ=Asia/Phnom_Penh
     volumes:
       - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml
     command: -config.file=/etc/loki/local-config.yaml
@@ -103,6 +105,7 @@ services:
       - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - TZ=Asia/Phnom_Penh
     depends_on:
       - loki
 
