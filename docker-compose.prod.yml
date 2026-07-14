@@ -106,5 +106,16 @@ services:
     depends_on:
       - loki
 
+  backup-cron:
+    image: docker:cli
+    volumes:
+      - ./scripts:/scripts
+      - ./backups:/backups
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: >
+      sh -c "echo '0 2 * * * /scripts/db-backup.sh' > /var/spool/cron/crontabs/root && crond -f"
+    depends_on:
+      - db
+
 volumes:
   db_data:

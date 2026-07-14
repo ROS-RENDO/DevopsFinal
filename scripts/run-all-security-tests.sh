@@ -54,44 +54,43 @@ fi
 echo ""
 echo -e "${BOLD}══════════════════════════════════════════════════════════════${NC}"
 
-# ── Test 1: Rate Limiting ────────────────────────────────────────────────────
+# ── Test 1: Secure Cookie ───────────────────────────────────────────────────
 echo ""
-echo -e "  ${BOLD}[1/5] Rate Limit Verification${NC}"
-echo ""
-BASE_URL="$BASE_URL" bash "$SCRIPT_DIR/test-rate-limit.sh"
-
-# Wait a moment between tests
-sleep 1
-
-# ── Test 2: Secure Cookie ───────────────────────────────────────────────────
-echo ""
-echo -e "  ${BOLD}[2/5] Secure Cookie Verification${NC}"
+echo -e "  ${BOLD}[1/5] Secure Cookie Verification${NC}"
 echo ""
 BASE_URL="$BASE_URL" bash "$SCRIPT_DIR/test-secure-cookie.sh"
 
 sleep 1
 
-# ── Test 3: Injection Prevention ────────────────────────────────────────────
+# ── Test 2: Injection Prevention ────────────────────────────────────────────
 echo ""
-echo -e "  ${BOLD}[3/5] Injection Prevention Verification${NC}"
+echo -e "  ${BOLD}[2/5] Injection Prevention Verification${NC}"
 echo ""
 BASE_URL="$BASE_URL" bash "$SCRIPT_DIR/test-injection-prevention.sh"
 
 sleep 1
 
-# ── Test 4: Brute Force Protection ──────────────────────────────────────────
+# ── Test 3: Brute Force Protection ──────────────────────────────────────────
 echo ""
-echo -e "  ${BOLD}[4/5] Brute Force Protection Verification${NC}"
+echo -e "  ${BOLD}[3/5] Brute Force Protection Verification${NC}"
 echo ""
 BASE_URL="$BASE_URL" bash "$SCRIPT_DIR/test-brute-force-protection.sh"
 
 sleep 1
 
-# ── Test 5: XSS Prevention ──────────────────────────────────────────────────
+# ── Test 4: XSS Prevention ──────────────────────────────────────────────────
 echo ""
-echo -e "  ${BOLD}[5/5] XSS Prevention Verification${NC}"
+echo -e "  ${BOLD}[4/5] XSS Prevention Verification${NC}"
 echo ""
 BASE_URL="$BASE_URL" bash "$SCRIPT_DIR/test-xss-prevention.sh"
+
+sleep 1
+
+# ── Test 5: Rate Limiting ────────────────────────────────────────────────────
+echo ""
+echo -e "  ${BOLD}[5/5] Rate Limit Verification${NC}"
+echo ""
+BASE_URL="$BASE_URL" bash "$SCRIPT_DIR/test-rate-limit.sh"
 
 # ── Final Summary ────────────────────────────────────────────────────────────
 echo ""
